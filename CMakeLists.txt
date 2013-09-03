@@ -15,3 +15,5 @@ include_directories (
 add_definitions (${ROOT_CFLAGS} ${SCIDB_CXX_FLAGS})
 
 add_subdirectory (src)
+add_subdirectory (playground)
+
