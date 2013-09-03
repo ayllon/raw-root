@@ -7,4 +7,4 @@ file (GLOB src_inspector "*.cpp")
 set (CMAKE_EXE_LINKER_FLAGS "-Wl,--no-as-needed")
 
 add_executable(inspector ${src_inspector})
-target_link_libraries (inspector ${ROOT_LIBRARIES})
+target_link_libraries (inspector ${ROOT_LIBRARIES} TMyClass)

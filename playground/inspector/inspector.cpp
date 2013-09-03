@@ -10,6 +10,7 @@
 #include <TKey.h>
 #include <TMemberInspector.h>
 #include <TStreamerElement.h>
+#include <TVector.h>
 #include <TVirtualStreamerInfo.h>
 #include <TROOT.h>
 
@@ -43,25 +44,6 @@ public:
             memberName         = member->GetName();
             isPointer          = member->IsaPointer();
         }
-        else if (!klass->IsLoaded()) {
-            // The class hasn't been loaded
-            TVirtualStreamerInfo* info = klass->GetStreamerInfo();
-            if (!info) return;
-            const char* cursor = name;
-            while ((*cursor) == '*') ++cursor;
-            TString elname(cursor);
-            Ssiz_t pos = elname.Index("[");
-            if (pos != kNPOS)
-                elname.Remove(pos);
-            TStreamerElement* element = static_cast<TStreamerElement*>(info->GetElements()->FindObject(elname.Data()));
-            if (!element) return;
-            memberFullTypeName = element->GetTypeName();
-            memberType     = gROOT->GetType(memberTypeName);           
-            memberName = element->GetName();
-            isPointer = element->IsaPointer() || element->GetType() == TVirtualStreamerInfo::kCharStar;
-            
-            memberTypeName = memberFullTypeName;
-        }
         else {
             return;
         }
@@ -85,6 +67,10 @@ public:
                 memberValueAsStr = *str;
                 dataClass = NULL;
             }
+            else if (dataClass == TVector::Class()) {
+                TVector* v = (TVector*)addr;
+                memberValueAsStr = v->GetName();
+            }
             else {
                 snprintf(buffer, sizeof(buffer), "-> 0x%lx", (off64_t)addr);
                 memberValueAsStr = buffer;
@@ -92,7 +78,7 @@ public:
         }
         
         std::cout << indent << std::setw(20) << memberFullTypeName << " "
-                  << klass->GetName() << "::" << memberName << " = " << memberValueAsStr
+                  << klass->GetName() << "::" << parent << memberName << " = " << memberValueAsStr
                   << std::endl;
     }
     
@@ -106,10 +92,17 @@ public:
         TList* keys = dir->GetListOfKeys();
         for (Int_t i = 0; i < nelements; ++i) {
             TKey* key = static_cast<TKey*>(keys->At(i));
-            std::cout << indent << key->GetName() << std::endl;
-            ++tabs;
-            key->ReadObj()->ShowMembers(*this);
-            --tabs;
+            std::cout << indent << key->GetClassName() << " " << key->GetName() << std::endl;
+            
+            TObject* obj = key->ReadObj();
+            if (obj) {
+                ++tabs;
+                obj->ShowMembers(*this);
+                --tabs;
+            }
+            else {
+                std::cout << "Could not read!" << std::endl;
+            }
         }
     }
 };

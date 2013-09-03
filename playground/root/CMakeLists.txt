@@ -1,0 +1,30 @@
+cmake_minimum_required (VERSION 2.6)
+
+# Generate the dictionary
+add_custom_command (
+    OUTPUT TMyClass-dictionary.cpp TMyClass-dictionary.h
+    COMMAND rootcint TMyClass-dictionary.cpp -c ${CMAKE_CURRENT_SOURCE_DIR}/TMyClass.h
+)
+
+# Build a shared object
+set (CMAKE_EXE_LINKER_FLAGS "-Wl,--no-as-needed")
+
+add_library (
+    TMyClass SHARED
+    TMyClass.cpp TMyClass-dictionary.cpp
+)
+target_link_libraries (TMyClass ${ROOT_LIBRARIES})
+
+set_target_properties (TMyClass PROPERTIES PREFIX "")
+
+
+# Generate a file with some stupid content
+add_custom_target (
+    TestFile ALL
+    DEPENDS TestFile.root
+)
+
+add_custom_command (
+    OUTPUT TestFile.root
+    COMMAND root -q -b "'${CMAKE_CURRENT_SOURCE_DIR}/GenerateFile.C(\"${CMAKE_CURRENT_BINARY_DIR}/TMyClass.so\",\"${CMAKE_CURRENT_BINARY_DIR}/TestFile.root\")'"
+)
