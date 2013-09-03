@@ -5,7 +5,7 @@
 # Defines:
 #
 #  SCIDB_FOUND - system has a SciDB source checkout
-#  SCIDB_INCLUDE_DIR - the SciDB include directory
+#  SCIDB_INCLUDES - the SciDB include directory
 #  SCIDB_SRC_DIR - SciDB src dir
 #  SCIDB_LIBRARIES
 #  SCIDB_CXX_FLAGS - SciDB flags needed, e.g., PROJECT_ROOT
@@ -42,7 +42,7 @@ find_package_handle_standard_args(SCIDB DEFAULT_MSG
 
 if(SCIDB_FOUND)
   set(SCIDB_INCLUDES ${SCIDB_INCLUDE_ARRAY}) 
-  set(SCIDB_CXX_FLAGS "-DPROJECT_ROOT=\\\"${SCIDB_ROOT_DIR}/\\\"")
+  set(SCIDB_CXX_FLAGS "-DPROJECT_ROOT=\"${SCIDB_ROOT_DIR}/\"")
 
 endif(SCIDB_FOUND)
 mark_as_advanced(Scidb_FOUND SCIDB_INCLUDES SCIDB_SRC_DIR SCIDB_CXX_FLAGS)

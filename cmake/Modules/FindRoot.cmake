@@ -51,5 +51,5 @@ endif (ROOT_CONFIG)
 # all listed variables are TRUE
 # -----------------------------------------------------
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(root DEFAULT_MSG ROOT_INCLUDE_DIR ROOT_LIBRARIES)
-mark_as_advanced(ROOT_INCLUDE_DIR ROOT_LIBRARIES)
+find_package_handle_standard_args(root DEFAULT_MSG ROOT_INCLUDE_DIR ROOT_LIBRARIES ROOT_CFLAGS)
+mark_as_advanced(ROOT_INCLUDE_DIR ROOT_LIBRARIES ROOT_CFLAGS)
