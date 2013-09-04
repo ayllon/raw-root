@@ -112,13 +112,6 @@ public:
             --tabs;
         }
     }
-    
-    void Inspect(const TCollection* collection)
-    {
-        std::string indent(tabs, '\t');
-        
-        std::cout << indent << "Collection!" << std::endl;
-    }
 };
 
 
