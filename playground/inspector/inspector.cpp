@@ -31,12 +31,14 @@ public:
         
         TDataType* memberType = NULL;
         TString memberTypeName;
+        TString memberFullTypeName;
         TString memberName;
         TString memberValueAsStr;
         Bool_t  isPointer;
         
         if (TDataMember* member = klass->GetDataMember(name)) {
             memberTypeName     = member->GetTypeName();
+            memberFullTypeName = member->GetFullTypeName();
             memberType         = member->GetDataType(); // Only for basic types
             memberName         = member->GetName();
             isPointer          = member->IsaPointer();
@@ -53,18 +55,21 @@ public:
                 elname.Remove(pos);
             TStreamerElement* element = static_cast<TStreamerElement*>(info->GetElements()->FindObject(elname.Data()));
             if (!element) return;
-            memberTypeName = element->GetTypeName();
+            memberFullTypeName = element->GetTypeName();
             memberType     = gROOT->GetType(memberTypeName);           
             memberName = element->GetName();
             isPointer = element->IsaPointer() || element->GetType() == TVirtualStreamerInfo::kCharStar;
+            
+            memberTypeName = memberFullTypeName;
         }
         else {
             return;
         }
         
+        TClass* dataClass = NULL;
         if (isPointer) {
             char buffer[32];
-            snprintf(buffer, sizeof(buffer), "0x%08lX", (off64_t)addr);
+            snprintf(buffer, sizeof(buffer), "0x%lx", (off64_t)addr);
             memberValueAsStr = buffer;
         }
         else if(memberType) {
@@ -72,13 +77,23 @@ public:
         }
         else {
             char buffer[32];
-            snprintf(buffer, sizeof(buffer), "-> 0x%08lX", (off64_t)memberType);
-            memberValueAsStr = buffer;
+            dataClass = TClass::GetClass(memberFullTypeName);
+            
+            
+            if (dataClass == TString::Class()) {
+                TString* str = (TString*)addr;
+                memberValueAsStr = *str;
+                dataClass = NULL;
+            }
+            else {
+                snprintf(buffer, sizeof(buffer), "-> 0x%lx", (off64_t)addr);
+                memberValueAsStr = buffer;
+            }
         }
         
-        std::cout << indent << std::setw(20) << memberTypeName << " "
+        std::cout << indent << std::setw(20) << memberFullTypeName << " "
                   << klass->GetName() << "::" << memberName << " = " << memberValueAsStr
-                  << std::endl;    
+                  << std::endl;
     }
     
     void Inspect(const TDirectory* dir)
