@@ -8,9 +8,11 @@ int GenerateFile(const TString& library, const TString& file)
     
     std::cout << "Filling " << file << std::endl;
     TMyClass obj("A description");
+	obj.SetName("Hello");
+	obj.fFloats[2] = 5;
     
     TFile out(file, "RECREATE");
     obj.Write();
-    
+
     return 0;
 }
