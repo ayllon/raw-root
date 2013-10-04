@@ -1,4 +1,5 @@
 #include <TClass.h>
+#include <TCollection.h>
 #include <TDataMember.h>
 #include <TKey.h>
 #include <TMemberInspector.h>
@@ -14,7 +15,8 @@ static bool isArray(const std::string& type)
 {
     return type.compare(0, 7, "TVector") == 0 ||
            type.compare(0, 9, "TVectorT<") == 0 ||
-           type.compare(0, 7, "vector<") == 0;
+           type.compare(0, 7, "vector<") == 0 ||
+           TClass::GetClass(type.c_str())->InheritsFrom("TCollection");
 }
 
 /// Put into container the container type, and into contained, the contained type
@@ -114,17 +116,31 @@ public:
         bool array = isArray(type);
         
         bool descend = this->visitor.pre(type, array, name, this->ptr);
-        if (descend) {
+        if (descend && !isPointer) {
             if (array) {
                 this->InspectArray(type, addr);
             }
-            else if (!isPointer && TClass::GetClass(type.c_str())->InheritsFrom("TObject")) {
+            else if (TClass::GetClass(type.c_str())->InheritsFrom("TObject")) {
                 TObject* obj = (TObject*)(addr);
                 obj->ShowMembers(*this);
             }
         }
         
         this->visitor.post(type, array, name, this->ptr);
+    }
+    
+    void IterateCollection(const void* addr)
+    {
+        const TCollection* collection = static_cast<const TCollection*>(addr);
+        if (!collection)
+            return;
+        TIterator* iterator = collection->MakeIterator();
+        const TObject* obj;
+        size_t i = 0;
+        while ((obj = iterator->Next())) {
+            this->InspectComplex(obj->ClassName(), false, obj->GetName(), obj);
+        }
+        delete iterator;
     }
     
     /// Inspect an array
@@ -149,6 +165,10 @@ public:
         // std::vector types
         else if (containerTypeName == "vector") {
             IterateGenericArray<std::vector>(addr, containedTypeName);
+        }
+        // TCollection types
+        else if (TClass::GetClass(containerTypeName.c_str())->InheritsFrom("TCollection")) {
+            IterateCollection(addr);
         }
     }
 

@@ -20,11 +20,13 @@ public:
     bool pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '+' << objType << ' ' << objName << std::endl;
+        std::cout << indent << '+' << objType << ' ' << objName;
         ++tabLevel;
         if (isArray)
-            std::cout << indent << "\t[";
-        
+            std::cout << " [";
+        else
+            std::cout << " {";
+        std::cout << std::endl;        
         return true;
     }
     
@@ -32,8 +34,11 @@ public:
     void post(const std::string& objType, bool isArray, const std::string& objName, void* ptr)
     {
         --tabLevel;
+        std::string indent(tabLevel, '\t');
         if (isArray)
-            std::cout << "]" << std::endl;
+            std::cout << std::endl << indent << " ]" << std::endl;
+        else
+            std::cout << indent << " }" << std::endl;
     }
     
     // On a leaf
@@ -49,6 +54,10 @@ public:
     // Array elements
     void leaf(size_t index, const Data& data, void* ptr)
     {
+        if (index == 0) {
+            std::string indent(tabLevel, '\t');
+            std::cout << indent;
+        }
         std::cout << data << ',';
     }
 };

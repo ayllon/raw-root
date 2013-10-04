@@ -1,3 +1,3 @@
 #include "TMyClass.h"
 
-ClassImp (TMyClass)
+ClassImp (TData)
