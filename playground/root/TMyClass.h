@@ -12,8 +12,8 @@ protected:
     void fillVector() {
         // Just fill several floats with incrementing values
         fFloats.ResizeTo(1000);
-        for (Float_t f = 0; f < fFloats.GetNoElements(); ++f) {
-            fFloats[static_cast<Int_t>(f)] = f;
+        for (Int_t f = 0; f < fFloats.GetNoElements(); ++f) {
+            fFloats[f] = f;
         }
         fInts.push_back(6);
 		fInts.push_back(99);

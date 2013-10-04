@@ -42,6 +42,7 @@ const static TypeNamePair typeMaps[] = {
 	TypeNamePair(kInt32,  "int", "Int_t", NULL),
 	TypeNamePair(kUInt32, "UInt_t", NULL),
 	TypeNamePair(kInt64,  "Long64_t", NULL),
+	TypeNamePair(kFloat,  "float", "Float_t", NULL),
 	TypeNamePair(kDouble, "double", "Double_t", NULL),
 	TypeNamePair(kString, "TString", NULL)
 };
@@ -49,7 +50,7 @@ const static size_t nPairs = sizeof(typeMaps) / sizeof(TypeNamePair);
 
 
 
-static DataType typeFromStr(const std::string& typeName)
+DataType Data::typeFromStr(const std::string& typeName)
 {
 	for (size_t i = 0; i < nPairs; ++i) {
 		const TypeNamePair& pair = typeMaps[i];		
@@ -58,6 +59,7 @@ static DataType typeFromStr(const std::string& typeName)
 				return pair.type;
 		}
 	}
+	return kUnknown;
 }
 
 

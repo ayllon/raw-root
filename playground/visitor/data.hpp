@@ -15,10 +15,13 @@ enum DataType {
 	kFloat, kDouble,
 	kString
 };
-	
+
+
 class Data
 {
 public:
+	static DataType typeFromStr(const std::string& typeName);
+	
 	Data(const std::string& typeName, const void* dataPtr);
 	std::string getTypeName() const;
 	DataType getType() const;

@@ -16,15 +16,19 @@ public:
 	}
 	
 	// Before children
-	void pre(const std::string& objType, const std::string& objName, void* ptr) {
+	void pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr) {
 		std::string indent(tabLevel, '\t');
 		std::cout << indent << '+' << objType << ' ' << objName << std::endl;
 		++tabLevel;
+		if (isArray)
+			std::cout << indent << "\t[";
 	}
 	
 	// After children
-	void post(const std::string& objType, const std::string& objName, void* ptr) {
+	void post(const std::string& objType, bool isArray, const std::string& objName, void* ptr) {
 		--tabLevel;
+		if (isArray)
+			std::cout << "]" << std::endl;
 	}
 	
 	// On a leaf
@@ -34,6 +38,11 @@ public:
 				  << data.getTypeName() << ' '
 				  << name << " = " << data
 				  << std::endl;
+	}
+	
+	// Array elements
+	void leaf(size_t index, const Data& data, void* ptr) {
+		std::cout << data << ',';
 	}
 };
 
