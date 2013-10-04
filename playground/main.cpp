@@ -1,6 +1,6 @@
 #include <iostream>
 #include <TFile.h>
-#include "Walker.hpp"
+#include "visitor/Walker.hpp"
 
 using namespace scidb::root;
 
