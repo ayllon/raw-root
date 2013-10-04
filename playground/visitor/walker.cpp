@@ -4,7 +4,7 @@
 #include <TMemberInspector.h>
 #include <TString.h>
 #include <TVector.h>
-#include <boost/iterator/iterator_concepts.hpp>
+#include <vector>
 #include "walker.hpp"
 
 using namespace scidb::root;
@@ -36,6 +36,29 @@ static void getContainerType(const std::string& fullType,
     contained->assign(fullType.substr(templateIndex + 1, containedTypeLen));
 }
 
+template <template <typename ...> class CONTAINER, typename T>
+struct ArrayIterator {
+    static void iterate(const void* addr, const std::string& elementType, IVisitor& visitor, void* ptr)
+    {
+        const CONTAINER<T> *v = static_cast<const CONTAINER<T>*>(addr);
+        size_t nElements = v->size();
+        for (size_t i = 0; i < nElements; ++i)
+            visitor.leaf(i, Data(elementType, &((*v)[i])), ptr);
+    }   
+};
+
+template <typename T>
+struct ArrayIterator<TVectorT, T>
+{
+    static void iterate(const void* addr, const std::string& elementType, IVisitor& visitor, void* ptr)
+    {
+        const TVectorT<T> *v = static_cast<const TVectorT<T>*>(addr);
+        size_t nElements = v->GetNoElements();
+        for (size_t i = 0; i < nElements; ++i)
+            visitor.leaf(i, Data(elementType, &((*v)[i])), ptr);
+    }   
+};
+
 
 class RootInspector: public TMemberInspector {
 public:
@@ -60,36 +83,49 @@ public:
         else if (memberType == "TString") {
             this->visitor.leaf(name, Data(memberType, addr), this->ptr);
         }
-        // Array types
-        else if (isArray(memberType)) {
-            this->visitor.pre(memberType, true, name, this->ptr);
-            this->InspectArray(memberType, addr);
-            this->visitor.post(memberType, true, name, this->ptr);
-        }
-        // Complex types
+        // Complext types
         else {
-            this->visitor.pre(memberType, false, name, this->ptr);
-            this->visitor.post(memberType, false, name, this->ptr);
+            this->InspectComplex(memberType, member->IsaPointer(), name, addr);
         }
     }
     
-    template <class A>
-    void InspectStdArray(const void* addr, const std::string& elementType)
+    void InspectComplex(const std::string& type, Bool_t isPointer,
+                        const std::string& name, const void* addr)
     {
-        const A& array = *(static_cast<const A*>(addr));
-        size_t nElements = array.size();
-        for (size_t i = 0; i < nElements; ++i) {
-            this->visitor.leaf(i, Data(elementType, &(array[i])), this->ptr);
+        if (isArray(type)) {
+            this->visitor.pre(type, true, name, this->ptr);
+            this->InspectArray(type, addr);
+            this->visitor.post(type, true, name, this->ptr);
+        }
+        else if (!isPointer && TClass::GetClass(type.c_str())->InheritsFrom("TObject")) {
+            this->visitor.pre(type, false, name, this->ptr);
+            TObject* obj = (TObject*)(addr);
+            obj->ShowMembers(*this);
+            this->visitor.post(type, false, name, this->ptr);
+        }
+        else {
+            this->visitor.pre(type, false, name, this->ptr);
+            this->visitor.post(type, false, name, this->ptr);
         }
     }
-    
-    template <class A>
-    void InspectRootArray(const void* addr, const std::string& elementType)
+
+    template <template <typename ...> class CONTAINER>
+    void IterateGenericArray(const void* addr, const std::string& elementType)
     {
-        const A& array = *(static_cast<const A*>(addr));
-        size_t nElements = array.GetNoElements();
-        for (size_t i = 0; i < nElements; ++i) {
-            this->visitor.leaf(i, Data(elementType, &(array[i])), this->ptr);
+        DataType containedType = Data::typeFromStr(elementType);
+        switch (containedType) {
+            case kInt32:
+                ArrayIterator<CONTAINER, int32_t>::iterate(addr, elementType, this->visitor, this->ptr);
+                break;
+            case kInt64:
+                ArrayIterator<CONTAINER, int64_t>::iterate(addr, elementType, this->visitor, this->ptr);
+                break;
+            case kFloat:
+                ArrayIterator<CONTAINER, float>::iterate(addr, elementType, this->visitor, this->ptr);
+                break;
+            default:
+                // Nothing
+                break;
         }
     }
     
@@ -103,21 +139,15 @@ public:
         
         // TVector is a typedef ot TVector<Float_t>
         if (containerTypeName == "TVector") {
-            InspectRootArray<TVector>(addr, "Float_t");
+            IterateGenericArray<TVectorT>(addr, "Float_t");
+        }
+        // TVectorT types
+        else if (containerTypeName == "TVectorT") {
+           IterateGenericArray<TVectorT>(addr, containedTypeName);
         }
         // std::vector types
         else if (containerTypeName == "vector") {
-            switch (containedType) {
-                case kInt32:
-                    InspectStdArray<std::vector<int32_t> >(addr, containedTypeName);
-                    break;
-                case kInt64:
-                    InspectStdArray<std::vector<int64_t> >(addr, containedTypeName);
-                    break;
-                default:
-                    // Nothing
-                    break;
-            }
+            IterateGenericArray<std::vector>(addr, containedTypeName);
         }
     }
     
@@ -145,9 +175,7 @@ void Walker::walk(IVisitor& visitor, void* ptr)
         TKey* key = static_cast<TKey*>(keys->At(i));
         TObject* obj = key->ReadObj();
         if (obj) {
-            visitor.pre(key->GetClassName(), false, obj->GetName(), ptr);
-            obj->ShowMembers(inspector);
-            visitor.post(key->GetClassName(), false, obj->GetName(), ptr);
+            inspector.InspectComplex(key->GetClassName(), false, obj->GetName(), obj);
         }
     }
 }
