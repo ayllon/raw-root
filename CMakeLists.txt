@@ -12,7 +12,7 @@ include_directories (
     ${ROOT_INCLUDE_DIR}
     ${SCIDB_INCLUDES}
 )
-add_definitions (${ROOT_CFLAGS} ${SCIDB_CXX_FLAGS} -std=c++11)
+add_definitions (${ROOT_CFLAGS} ${SCIDB_CXX_FLAGS})
 
 add_subdirectory (src)
 add_subdirectory (playground)

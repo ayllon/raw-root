@@ -5,10 +5,11 @@
 #include <TString.h>
 #include <TVector.h>
 #include <vector>
-#include "walker.hpp"
+#include "Walker.hpp"
 
 using namespace scidb::root;
 
+/// Return true if the type is an array (or equivalent)
 static bool isArray(const std::string& type)
 {
     return type.compare(0, 7, "TVector") == 0 ||
@@ -16,7 +17,11 @@ static bool isArray(const std::string& type)
            type.compare(0, 7, "vector<") == 0;
 }
 
-
+/// Put into container the container type, and into contained, the contained type
+/// For instance
+///      fullType = vector<int>
+///      container = vector
+///      contained = int
 static void getContainerType(const std::string& fullType,
                              std::string* container,
                              std::string* contained)
@@ -36,6 +41,7 @@ static void getContainerType(const std::string& fullType,
     contained->assign(fullType.substr(templateIndex + 1, containedTypeLen));
 }
 
+/// Generic template for an interator from the standard library
 template <template <typename ...> class CONTAINER, typename T>
 struct ArrayIterator {
     static void iterate(const void* addr, const std::string& elementType, IVisitor& visitor, void* ptr)
@@ -47,6 +53,7 @@ struct ArrayIterator {
     }   
 };
 
+/// Partially specialized iterator for TVectorT type from Root
 template <typename T>
 struct ArrayIterator<TVectorT, T>
 {
@@ -59,13 +66,20 @@ struct ArrayIterator<TVectorT, T>
     }   
 };
 
-
+/// Implementation of TMemberInspector, plus additional methods, to inspect a Root file/object
 class RootInspector: public TMemberInspector {
 public:
+    
+    /// Constructor
     RootInspector(IVisitor& visitor, void* ptr): visitor(visitor), ptr(ptr)
     {
     }
     
+    /// Overloaded method
+    /// @param klass  The class of the object being inspected
+    /// @param parent The parent of the current attribute
+    /// @param name   The name of the current attribute
+    /// @param addr   A pointer to the value
     void Inspect(TClass* klass, const char* parent, const char* name, const void* addr)
     {
         // We don't want to recurse into members... yet
@@ -89,46 +103,32 @@ public:
         }
     }
     
+    /// Inspect a complext object (not basic)
+    /// @param type      The typename of the object
+    /// @param isPointer If the value actually is a pointer, rather than an object
+    /// @param name      The name of the object (i.e. attribute name)
+    /// @param addr      A pointer to the value
     void InspectComplex(const std::string& type, Bool_t isPointer,
                         const std::string& name, const void* addr)
     {
-        if (isArray(type)) {
-            this->visitor.pre(type, true, name, this->ptr);
+        bool array = isArray(type);
+        
+        this->visitor.pre(type, array, name, this->ptr);
+        
+        if (array) {
             this->InspectArray(type, addr);
-            this->visitor.post(type, true, name, this->ptr);
         }
         else if (!isPointer && TClass::GetClass(type.c_str())->InheritsFrom("TObject")) {
-            this->visitor.pre(type, false, name, this->ptr);
             TObject* obj = (TObject*)(addr);
             obj->ShowMembers(*this);
-            this->visitor.post(type, false, name, this->ptr);
         }
-        else {
-            this->visitor.pre(type, false, name, this->ptr);
-            this->visitor.post(type, false, name, this->ptr);
-        }
-    }
-
-    template <template <typename ...> class CONTAINER>
-    void IterateGenericArray(const void* addr, const std::string& elementType)
-    {
-        DataType containedType = Data::typeFromStr(elementType);
-        switch (containedType) {
-            case kInt32:
-                ArrayIterator<CONTAINER, int32_t>::iterate(addr, elementType, this->visitor, this->ptr);
-                break;
-            case kInt64:
-                ArrayIterator<CONTAINER, int64_t>::iterate(addr, elementType, this->visitor, this->ptr);
-                break;
-            case kFloat:
-                ArrayIterator<CONTAINER, float>::iterate(addr, elementType, this->visitor, this->ptr);
-                break;
-            default:
-                // Nothing
-                break;
-        }
+        
+        this->visitor.post(type, array, name, this->ptr);
     }
     
+    /// Inspect an array
+    /// @param type The full array type
+    /// @param addr A pointer to the value
     void InspectArray(const std::string& type, const void* addr)
     {
         std::string containerTypeName;
@@ -150,6 +150,32 @@ public:
             IterateGenericArray<std::vector>(addr, containedTypeName);
         }
     }
+
+    /// To iterate an array, we need to know the actual type of the contained type too
+    /// (otherwise we can not iterate it!)
+    /// Thanks to the ArrayIterator template magic, we can reuse this logic for both
+    /// root container and standard containers.
+    template <template <typename ...> class CONTAINER>
+    void IterateGenericArray(const void* addr, const std::string& elementType)
+    {
+        DataType containedType = Data::typeFromStr(elementType);
+        switch (containedType) {
+            case kInt32:
+                ArrayIterator<CONTAINER, int32_t>::iterate(addr, elementType, this->visitor, this->ptr);
+                break;
+            case kInt64:
+                ArrayIterator<CONTAINER, int64_t>::iterate(addr, elementType, this->visitor, this->ptr);
+                break;
+            case kFloat:
+                ArrayIterator<CONTAINER, float>::iterate(addr, elementType, this->visitor, this->ptr);
+                break;
+            default:
+                // Add additional cases to support other basic types.
+                // May need to iterate array of objects in the future.
+                // That's trickier...
+                break;
+        }
+    }
     
 protected:
     IVisitor& visitor;
@@ -157,11 +183,9 @@ protected:
 };
 
 
-
 Walker::Walker(const TFile& file): file(file)
 {
 }
-
 
 
 void Walker::walk(IVisitor& visitor, void* ptr)

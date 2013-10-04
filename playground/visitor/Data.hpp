@@ -8,6 +8,7 @@
 namespace scidb {
 namespace root {
 
+/// Enumerate for different _basic_ data types
 enum DataType {
     kUnknown = 0,
     kInt8,  kInt32,  kInt64,
@@ -17,14 +18,23 @@ enum DataType {
 };
 
 
+/// Holder and caster for types identified by a string
 class Data
 {
 public:
+    /// Return the corresponding DataType for typeName
     static DataType typeFromStr(const std::string& typeName);
     
+    /// Constructor
     Data(const std::string& typeName, const void* dataPtr);
+    
+    /// Get the type as a string
     std::string getTypeName() const;
+    
+    /// Get the type as an enumerate
     DataType getType() const;
+    
+    // Get the cast value of the raw data pointed by dataPtr
     
     int8_t      getInt8() const;
     int32_t     getInt32() const;
@@ -40,6 +50,7 @@ protected:
     DataType    type;
 };
 
+/// Convenience method to dump a Data object into a stream
 std::ostream& operator << (std::ostream& o, const Data& d);
 
 }}

@@ -1,10 +1,9 @@
 #include <cassert>
 #include <cstdarg>
 #include <TString.h>
-#include "data.hpp"
+#include "Data.hpp"
 
 using namespace scidb::root;
-
 
 
 struct TypeNamePair {
@@ -38,7 +37,6 @@ struct TypeNamePair {
 };
 
 
-
 const static TypeNamePair typeMaps[] = {
     TypeNamePair(kInt8,   "char", "Char_t", "Bool_t", NULL),
     TypeNamePair(kInt32,  "int", "Int_t", NULL),
@@ -49,7 +47,6 @@ const static TypeNamePair typeMaps[] = {
     TypeNamePair(kString, "TString", NULL)
 };
 const static size_t nPairs = sizeof(typeMaps) / sizeof(TypeNamePair);
-
 
 
 DataType Data::typeFromStr(const std::string& typeName)
@@ -65,13 +62,11 @@ DataType Data::typeFromStr(const std::string& typeName)
 }
 
 
-
 Data::Data(const std::string& typeName, const void* dataPtr):
     typeName(typeName), dataPtr(dataPtr)
 {
     type = typeFromStr(typeName);
 }
-
 
 
 std::string Data::getTypeName() const
@@ -80,12 +75,10 @@ std::string Data::getTypeName() const
 }
 
 
-
 DataType Data::getType() const
 {
     return type;
 }
-
 
 
 int8_t Data::getInt8() const
@@ -95,13 +88,11 @@ int8_t Data::getInt8() const
 }
 
 
-
 int32_t Data::getInt32() const
 {
     assert(type == kInt32);
     return *(static_cast<const int32_t*>(dataPtr));
 }
-
 
 
 uint32_t Data::getUInt32() const
@@ -111,13 +102,11 @@ uint32_t Data::getUInt32() const
 }
 
 
-
 int64_t Data::getInt64() const
 {
     assert(type == kInt64);
     return *(static_cast<const int64_t*>(dataPtr));
 }
-
 
 
 float Data::getFloat() const
@@ -127,18 +116,19 @@ float Data::getFloat() const
 }
 
 
-
 double Data::getDouble() const
 {
     assert(type == kDouble);
     return *(static_cast<const double*>(dataPtr));
 }
 
+
 std::string Data::getString() const
 {
     const TString *tStr = static_cast<const TString*>(dataPtr);
     return tStr->Data();
 }
+
 
 std::ostream& scidb::root::operator << (std::ostream& o, const Data& d)
 {
