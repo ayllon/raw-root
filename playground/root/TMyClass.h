@@ -9,7 +9,8 @@
 class TMyClass: public TNamed
 {
 protected:
-    void fillVector() {
+    void fillVector()
+    {
         // Just fill several floats with incrementing values
         fFloats.ResizeTo(1000);
         for (Int_t f = 0; f < fFloats.GetNoElements(); ++f) {
@@ -34,10 +35,12 @@ public:
 	Double_t something;
 	Long64_t value;
 
-    TMyClass() {
+    TMyClass()
+    {
     }
     
-    TMyClass(const TString& descr): fDescription(descr) {
+    TMyClass(const TString& descr): fDescription(descr)
+    {
         fillVector();
         fillTree();
     }
