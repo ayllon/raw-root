@@ -19,12 +19,18 @@ public:
 		if (parent && parent[0])
 			return;
 		
-		TDataMember* member = klass->GetDataMember(name);
+		TDataMember* member      = klass->GetDataMember(name);
+		TClass*      memberKlass = TClass::GetClass(member->GetFullTypeName());
 		
 		// Basic types can not be traversed, so they are leafs
 		if (member->IsBasic()) {
 			this->visitor.leaf(name, Data(member->GetTypeName(), addr), this->ptr);
 		}
+		// Consider TString a basic type
+		else if (memberKlass == TString::Class()) {
+			this->visitor.leaf(name, Data(member->GetTypeName(), addr), this->ptr);
+		}
+		// Complex types
 		else {
 			this->visitor.pre(member->GetTypeName(), name, this->ptr);
 			this->visitor.post(member->GetTypeName(), name, this->ptr);

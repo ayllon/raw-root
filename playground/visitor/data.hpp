@@ -13,6 +13,7 @@ enum DataType {
 	kInt8,  kInt32,  kInt64,
 	kUInt8, kUInt32, kUInt64,
 	kFloat, kDouble,
+	kString
 };
 	
 class Data
@@ -22,12 +23,13 @@ public:
 	std::string getTypeName() const;
 	DataType getType() const;
 	
-	int8_t   getInt8() const;
-	int32_t  getInt32() const;
-	uint32_t getUInt32() const;
-	int64_t  getInt64() const;
-	float    getFloat() const;
-	double   getDouble() const;
+	int8_t      getInt8() const;
+	int32_t     getInt32() const;
+	uint32_t    getUInt32() const;
+	int64_t     getInt64() const;
+	float       getFloat() const;
+	double      getDouble() const;
+	std::string getString() const;
 	
 protected:
 	std::string typeName;

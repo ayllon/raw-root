@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdarg>
+#include <TString.h>
 #include "data.hpp"
 
 using namespace scidb::root;
@@ -42,6 +43,7 @@ const static TypeNamePair typeMaps[] = {
 	TypeNamePair(kUInt32, "UInt_t", NULL),
 	TypeNamePair(kInt64,  "Long64_t", NULL),
 	TypeNamePair(kDouble, "double", "Double_t", NULL),
+	TypeNamePair(kString, "TString", NULL)
 };
 const static size_t nPairs = sizeof(typeMaps) / sizeof(TypeNamePair);
 
@@ -128,7 +130,11 @@ double Data::getDouble() const
 	return *(static_cast<const double*>(dataPtr));
 }
 
-
+std::string Data::getString() const
+{
+	const TString *tStr = static_cast<const TString*>(dataPtr);
+	return tStr->Data();
+}
 
 std::ostream& scidb::root::operator << (std::ostream& o, const Data& d)
 {
@@ -150,6 +156,9 @@ std::ostream& scidb::root::operator << (std::ostream& o, const Data& d)
 			break;
 		case kDouble:
 			o << d.getDouble();
+			break;
+		case kString:
+			o << '"' << d.getString() << '"';
 			break;
 		default:
 			o << '?';
