@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TFile.h>
+#include <TVector.h>
 
 int GenerateFile(const TString& library, const TString& file)
 {
@@ -11,8 +12,14 @@ int GenerateFile(const TString& library, const TString& file)
 	obj.SetName("Hello");
 	obj.fFloats[2] = 5;
     
+    TVector firstLevelVector;
+    firstLevelVector.ResizeTo(20);
+    for (size_t i = 0; i < firstLevelVector.GetNoElements(); ++i)
+        firstLevelVector[i] = 42;
+    
     TFile out(file, "RECREATE");
     obj.Write();
+    firstLevelVector.Write();
 
     return 0;
 }
