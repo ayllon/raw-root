@@ -16,7 +16,8 @@ public:
     /// @param isArray If the object is an array or equivalent
     /// @param objName The object name
     /// @param ptr     The pointer passed to Walker::walk method
-    virtual void pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr) = 0;
+    /// @return        If it returns false, the walker won't descend into the children
+    virtual bool pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr) = 0;
     
     /// Called after processing a data member
     /// @param objType The object type name

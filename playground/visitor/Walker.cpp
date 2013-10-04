@@ -113,14 +113,15 @@ public:
     {
         bool array = isArray(type);
         
-        this->visitor.pre(type, array, name, this->ptr);
-        
-        if (array) {
-            this->InspectArray(type, addr);
-        }
-        else if (!isPointer && TClass::GetClass(type.c_str())->InheritsFrom("TObject")) {
-            TObject* obj = (TObject*)(addr);
-            obj->ShowMembers(*this);
+        bool descend = this->visitor.pre(type, array, name, this->ptr);
+        if (descend) {
+            if (array) {
+                this->InspectArray(type, addr);
+            }
+            else if (!isPointer && TClass::GetClass(type.c_str())->InheritsFrom("TObject")) {
+                TObject* obj = (TObject*)(addr);
+                obj->ShowMembers(*this);
+            }
         }
         
         this->visitor.post(type, array, name, this->ptr);

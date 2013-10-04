@@ -17,13 +17,15 @@ public:
     }
     
     // Before children
-    void pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr)
+    bool pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr)
     {
         std::string indent(tabLevel, '\t');
         std::cout << indent << '+' << objType << ' ' << objName << std::endl;
         ++tabLevel;
         if (isArray)
             std::cout << indent << "\t[";
+        
+        return true;
     }
     
     // After children
