@@ -1,7 +1,11 @@
 #include <iostream>
 #include <TFile.h>
-#include "visitor/TypeResolver.hpp"
-#include "visitor/Walker.hpp"
+#include "RootWalker/TypeResolver.hpp"
+#include "RootWalker/Walker.hpp"
+
+#ifndef BUILD_PATH
+#  define BUILD_PATH ""
+#endif
 
 using namespace scidb::root;
 
@@ -70,6 +74,18 @@ public:
     }
 };
 
+
+
+static std::string getHandlerLibraryPath(void)
+{
+    const char* envPath = getenv("HANDLER_LIBRARY_PATH");
+    if (envPath)
+        return envPath;
+    return std::string(BUILD_PATH);
+}
+
+
+
 int main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -79,7 +95,7 @@ int main(int argc, char** argv)
     
     TFile file(argv[1]);
     
-    TypeResolver typeResolver("/home/aalvarez/Sources/scidb-root/build/playground/visitor/handlers/");
+    TypeResolver typeResolver(getHandlerLibraryPath());
     MyVisitor visitor;
     
     Walker walker(file, typeResolver);

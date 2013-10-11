@@ -1,6 +1,6 @@
 #include <TClass.h>
-#include "TypeHandler.hpp"
-#include "TypeResolver.hpp"
+#include "../../TypeHandler.hpp"
+#include "../../TypeResolver.hpp"
 
 using namespace scidb::root;
 

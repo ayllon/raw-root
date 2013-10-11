@@ -1,8 +1,8 @@
 #include <TVector.h>
 #include <vector>
-#include "Data.hpp"
-#include "TypeHandler.hpp"
-#include "TypeResolver.hpp"
+#include "../../Data.hpp"
+#include "../../TypeHandler.hpp"
+#include "../../TypeResolver.hpp"
 
 using namespace scidb::root;
 
