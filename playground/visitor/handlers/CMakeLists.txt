@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_subdirectory (TCollection)
+add_subdirectory (TPolyLine)
 add_subdirectory (Vector)
