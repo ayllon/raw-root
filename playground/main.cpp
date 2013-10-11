@@ -17,7 +17,7 @@ public:
     }
     
     // Before children
-    bool pre(const std::string& objType, bool isArray, const std::string& objName, void* ptr)
+    bool pre(const std::string& objType, bool isArray, const std::string& objName)
     {
         std::string indent(tabLevel, '\t');
         std::cout << indent << '+' << objType << ' ' << objName;
@@ -31,7 +31,7 @@ public:
     }
     
     // After children
-    void post(const std::string& objType, bool isArray, const std::string& objName, void* ptr)
+    void post(const std::string& objType, bool isArray, const std::string& objName)
     {
         --tabLevel;
         std::string indent(tabLevel, '\t');
@@ -42,7 +42,7 @@ public:
     }
     
     // On a leaf
-    void leaf(const std::string& name, const Data& data, void* ptr)
+    void leaf(const std::string& name, const Data& data)
     {
         std::string indent(tabLevel, '\t');
         std::cout << indent << ' '
@@ -52,13 +52,20 @@ public:
     }
     
     // Array elements
-    void leaf(size_t index, const Data& data, void* ptr)
+    void leaf(size_t index, const Data& data)
     {
         if (index == 0) {
             std::string indent(tabLevel, '\t');
             std::cout << indent;
         }
         std::cout << data << ',';
+    }
+    
+    // Unknown elements
+    void unknown(const std::string& name, const std::string& type)
+    {
+        std::string indent(tabLevel, '\t');
+        std::cout << indent << '?' << type << ' ' << name << std::endl;
     }
 };
 
@@ -73,7 +80,7 @@ int main(int argc, char** argv)
     
     MyVisitor visitor;
     Walker walker(file);
-    walker.walk(visitor, nullptr);
+    walker.walk(visitor);
     
     return 0;
 }
