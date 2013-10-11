@@ -1,7 +1,9 @@
 #include <dlfcn.h>
 #include <dirent.h>
 #include <boost/concept_check.hpp>
+#include "TObjectHandler.hpp"
 #include "TypeResolver.hpp"
+
 
 using namespace scidb::root;
 
@@ -96,6 +98,8 @@ TypeResolver::TypeResolver(const std::string& handlerLocation):
     implPtr(new TypeResolverImpl(this))
 {
     implPtr->loadHandlersFromLocation(handlerLocation);
+    // Force generic object handler last
+    implPtr->registerHandler(new TObjectHandler(*this));
 }
 
 

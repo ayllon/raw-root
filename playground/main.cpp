@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TFile.h>
+#include "visitor/TypeResolver.hpp"
 #include "visitor/Walker.hpp"
 
 using namespace scidb::root;
@@ -78,8 +79,10 @@ int main(int argc, char** argv)
     
     TFile file(argv[1]);
     
+    TypeResolver typeResolver("/home/aalvarez/Sources/scidb-root/build/playground/visitor/handlers/");
     MyVisitor visitor;
-    Walker walker(file);
+    
+    Walker walker(file, typeResolver);
     walker.walk(visitor);
     
     return 0;

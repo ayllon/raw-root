@@ -6,6 +6,8 @@
 
 namespace scidb {
 namespace root {
+    
+class TypeResolver;
 
 /// Visitor interface.
 /// This must be implemented by the client, so the Walker can call the corresponding
@@ -48,13 +50,14 @@ class Walker
 public:
     /// Constructor
     /// @param file The file to be traversed
-    Walker(const TFile& file);
+    Walker(const TFile& file, TypeResolver& typeResolver);
     
     /// Perform the walk
     /// @param visitor The implementation of IVisitor
     void walk(IVisitor& visitor);
     
 protected:
+    TypeResolver& typeResolver;
     const TFile& file;
 };
 
