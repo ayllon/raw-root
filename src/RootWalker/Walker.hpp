@@ -49,8 +49,8 @@ class Walker
 {
 public:
     /// Constructor
-    /// @param file The file to be traversed
-    Walker(const TFile& file, TypeResolver& typeResolver);
+    /// @param file The root object to be traversed
+    Walker(const TObject& obj, TypeResolver& typeResolver);
     
     /// Perform the walk
     /// @param visitor The implementation of IVisitor
@@ -58,7 +58,7 @@ public:
     
 protected:
     TypeResolver& typeResolver;
-    const TFile& file;
+    const TObject& obj;
 };
 
 }}
