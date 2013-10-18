@@ -46,7 +46,6 @@ public:
         
         TIterator* iterator = collection->MakeIterator();
         const TObject* obj;
-        size_t i = 0;
         
         while ((obj = iterator->Next())) {
             std::string objType = obj->ClassName();

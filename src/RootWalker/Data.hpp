@@ -25,6 +25,9 @@ public:
     /// Return the corresponding DataType for typeName
     static DataType typeFromStr(const std::string& typeName);
     
+    /// Default constructor
+    Data();
+    
     /// Constructor
     Data(const std::string& typeName, const void* dataPtr);
     

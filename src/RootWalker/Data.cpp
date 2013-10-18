@@ -62,6 +62,11 @@ DataType Data::typeFromStr(const std::string& typeName)
 }
 
 
+Data::Data(): typeName("unknown"), type(kUnknown), dataPtr(nullptr)
+{
+}
+
+
 Data::Data(const std::string& typeName, const void* dataPtr):
     typeName(typeName), dataPtr(dataPtr)
 {
@@ -152,8 +157,14 @@ std::ostream& scidb::root::operator << (std::ostream& o, const Data& d)
             o << d.getDouble();
             break;
         case kString:
-            o << '"' << d.getString() << '"';
+        {
+            std::string str = d.getString();
+            if (str.size() > 20)
+                o << '"' << str.substr(0, 20) << "...\"";
+            else
+                o << '"' << str << '"';
             break;
+        }
         default:
             o << '?';
     }

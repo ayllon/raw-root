@@ -9,9 +9,9 @@ class TPolyLineHandler: public ITypeHandler
 {
 public:
     
-    bool recognize(const std::string& type)
+    bool recognize(const std::string& typeName)
     {
-        return type.compare("TPolyLine") == 0;
+        return typeName.compare("TPolyLine") == 0;
     }
     
     
