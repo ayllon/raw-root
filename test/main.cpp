@@ -22,10 +22,10 @@ public:
     }
     
     // Before children
-    bool pre(const std::string& objType, bool isArray, const std::string& objName)
+    bool pre(const std::string& typeName, bool isArray, const std::string& objName)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '+' << objType << ' ' << objName;
+        std::cout << indent << '+' << typeName << ' ' << objName;
         ++tabLevel;
         if (isArray)
             std::cout << " [";
@@ -36,7 +36,7 @@ public:
     }
     
     // After children
-    void post(const std::string& objType, bool isArray, const std::string& objName)
+    void post(const std::string& typeName, bool isArray, const std::string& objName)
     {
         --tabLevel;
         std::string indent(tabLevel, '\t');
@@ -67,10 +67,10 @@ public:
     }
     
     // Unknown elements
-    void unknown(const std::string& name, const std::string& type)
+    void unknown(const std::string& typeName, const std::string& objName)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '?' << type << ' ' << name << std::endl;
+        std::cout << indent << '?' << typeName << ' ' << objName << std::endl;
     }
 };
 

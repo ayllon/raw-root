@@ -17,5 +17,5 @@ void Walker::walk(IVisitor& visitor)
     if (handler)
         handler->inspect(obj.ClassName(), false, obj.GetName(), &obj, visitor);
     else
-        visitor.unknown(obj.GetName(), obj.ClassName());
+        visitor.unknown(obj.ClassName(), obj.GetName());
 }

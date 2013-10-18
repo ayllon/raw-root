@@ -55,7 +55,7 @@ public:
             if (handler)
                 handler->inspect(key->GetClassName(), false, obj->GetName(), obj, visitor);
             else
-                visitor.unknown(obj->GetName(), key->GetClassName());
+                visitor.unknown(key->GetClassName(), obj->GetName());
         }
     }
 };

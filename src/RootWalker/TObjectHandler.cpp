@@ -57,6 +57,6 @@ void TObjectHandler::Inspect(TClass* klass, const char* parent, const char* name
                                 name, addr,
                                 *(this->visitor));
         else
-            this->visitor->unknown(name, memberType);
+            this->visitor->unknown(memberType, name);
     }
 }

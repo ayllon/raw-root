@@ -20,7 +20,7 @@ public:
     void registerHandler(ITypeHandler* handler);
     
     /// Return the type handler for the given type name
-    ITypeHandler* getHandlerForType(const std::string& type);
+    ITypeHandler* getHandlerForType(const std::string& typeName);
     
 private:
     TypeResolverImpl* implPtr;

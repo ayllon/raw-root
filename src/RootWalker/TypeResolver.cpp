@@ -40,11 +40,11 @@ public:
     }
     
     
-    ITypeHandler* getHandlerForType(const std::string& type)
+    ITypeHandler* getHandlerForType(const std::string& typeName)
     {
         ITypeHandlerList::iterator i;
         for (i = handlers.begin(); i != handlers.end(); ++i) {
-            if ((*i)->recognize(type))
+            if ((*i)->recognize(typeName))
                 return *i;
         }
         return nullptr;
@@ -109,9 +109,9 @@ TypeResolver::~TypeResolver()
 }
 
 
-ITypeHandler* TypeResolver::getHandlerForType(const std::string& type)
+ITypeHandler* TypeResolver::getHandlerForType(const std::string& typeName)
 {
-    return implPtr->getHandlerForType(type);
+    return implPtr->getHandlerForType(typeName);
 }
 
 
