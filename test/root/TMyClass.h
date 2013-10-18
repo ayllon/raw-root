@@ -14,12 +14,12 @@ protected:
     void fillVector()
     {
         // Just fill several floats with incrementing values
-        fFloats.ResizeTo(1000);
+        /*fFloats.ResizeTo(1000);
         for (Int_t f = 0; f < fFloats.GetNoElements(); ++f) {
             fFloats[f] = f;
         }
         fInts.push_back(6);
-        fInts.push_back(99);
+        fInts.push_back(99);*/
 
         something = 42;
         value = 88;
@@ -28,7 +28,7 @@ protected:
     void fillTree() {
         TData* data = NULL;
         
-        fTree.Branch("data", "TData", &data, 64000, 1);
+        fTree.Branch("data", "TData", &data);
         
         for (size_t i = 0; i < 10; ++i) {
             data = new TData();

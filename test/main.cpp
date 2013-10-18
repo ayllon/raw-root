@@ -25,7 +25,7 @@ public:
     bool pre(const std::string& typeName, bool isArray, const std::string& objName)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '+' << typeName << ' ' << objName;
+        std::cout << indent << '+' << typeName << ' ' << objName.substr(0, 30);
         ++tabLevel;
         if (isArray)
             std::cout << " [";
@@ -52,7 +52,7 @@ public:
         std::string indent(tabLevel, '\t');
         std::cout << indent << ' '
                   << data.getTypeName() << ' '
-                  << name << " = " << data
+                  << name.substr(0, 30) << " = " << data
                   << std::endl;
     }
     
@@ -94,12 +94,19 @@ int main(int argc, char** argv)
     }
     
     TFile file(argv[1]);
-    
     TypeResolver typeResolver(getHandlerLibraryPath());
-    MyVisitor visitor;
     
-    Walker walker(file, typeResolver);
-    walker.walk(visitor);
+    TObject* toVisit = &file;
+    if (argc > 2)
+        toVisit = file.Get(argv[2]);
+    else
+        toVisit = &file;
+
+    if (toVisit) {
+        MyVisitor visitor;
+        Walker walker(*toVisit, typeResolver);
+        walker.walk(visitor);
+    }
     
     return 0;
 }
