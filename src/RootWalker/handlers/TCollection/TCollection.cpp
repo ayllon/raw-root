@@ -22,7 +22,8 @@ public:
     
     bool recognize(const std::string& typeName)
     {
-        return TClass::GetClass(typeName.c_str())->InheritsFrom("TCollection");
+        TClass* klass = TClass::GetClass(typeName.c_str());
+        return klass && klass->InheritsFrom("TCollection");
     }
     
     

@@ -14,7 +14,8 @@ TObjectHandler::TObjectHandler(TypeResolver& resolver):
 
 bool TObjectHandler::recognize(const std::string& typeName)
 {
-    return TClass::GetClass(typeName.c_str())->InheritsFrom("TObject");
+    TClass* klass = TClass::GetClass(typeName.c_str());
+    return klass && klass->InheritsFrom("TObject");
 }
 
 
