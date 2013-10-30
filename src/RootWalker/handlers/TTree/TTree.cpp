@@ -25,9 +25,16 @@ public:
         return klass && klass->InheritsFrom("TBranch");
     }
     
+    
+    bool isDoubleBranch(const std::string& typeName)
+    {
+        return typeName == "TBrach<Double_t>";
+    }
+    
+    
     bool recognize(const std::string& typeName)
     {
-        return isTree(typeName) || isBranch(typeName);
+        return isTree(typeName) || isBranch(typeName) || isDoubleBranch(typeName);
     }
     
     
@@ -47,6 +54,10 @@ public:
             TBranch* branch = (TBranch*)(addr);
             this->iterateBranch(name, branch, visitor);
         }
+        else if (isDoubleBranch(typeName)) {
+            TBranch* branch = (TBranch*)(addr);
+            this->iterateEntries(name, branch, visitor);
+        }
     }
     
     
@@ -55,7 +66,7 @@ public:
         TObjArray* subBranches = branch->GetListOfBranches();
         
         if (subBranches->GetEntries() == 0) {
-            this->iterateEntries(branch, visitor);
+            this->iterateEntries(branch->GetName(), branch, visitor);
         }
         else {
             if (visitor.pre("TBranch", false, name, branch))
@@ -79,12 +90,12 @@ public:
     }
     
     
-    void iterateEntries(TBranch* branch, IVisitor& visitor)
+    void iterateEntries(const std::string& name, TBranch* branch, IVisitor& visitor)
     {
         if (!branch)
             return;
         
-        if (visitor.pre("TBrach<Double_t>", true, branch->GetName(), branch)) {
+        if (visitor.pre("TBrach<Double_t>", true, name, branch)) {
             Long64_t count = branch->GetEntries();
             for (Long64_t i = 0; i < count; ++i) {
                 branch->GetEntry(i, 1);
@@ -92,7 +103,7 @@ public:
                 this->iterateLeaves(leaves, i, visitor);
             }
         }
-        visitor.post("TBrach<Double_t>", true, branch->GetName(), branch);
+        visitor.post("TBrach<Double_t>", true, name, branch);
     }
     
     
