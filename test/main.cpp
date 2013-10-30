@@ -22,7 +22,7 @@ public:
     }
     
     // Before children
-    bool pre(const std::string& typeName, bool isArray, const std::string& objName)
+    bool pre(const std::string& typeName, bool isArray, const std::string& objName, const void* obj)
     {
         std::string indent(tabLevel, '\t');
         std::cout << indent << '+' << typeName << ' ' << objName.substr(0, 30);
@@ -36,7 +36,7 @@ public:
     }
     
     // After children
-    void post(const std::string& typeName, bool isArray, const std::string& objName)
+    void post(const std::string& typeName, bool isArray, const std::string& objName, const void* obj)
     {
         --tabLevel;
         std::string indent(tabLevel, '\t');
@@ -67,7 +67,7 @@ public:
     }
     
     // Unknown elements
-    void unknown(const std::string& typeName, const std::string& objName)
+    void unknown(const std::string& typeName, const std::string& objName, const void* obj)
     {
         std::string indent(tabLevel, '\t');
         std::cout << indent << '?' << typeName << ' ' << objName << std::endl;
@@ -95,17 +95,21 @@ int main(int argc, char** argv)
     
     TFile file(argv[1]);
     TypeResolver typeResolver(getHandlerLibraryPath());
+    Walker walker(typeResolver);
     
-    TObject* toVisit = &file;
-    if (argc > 2)
-        toVisit = file.Get(argv[2]);
-    else
+    const void* toVisit = nullptr;
+    std::string nodeTypeName;
+    if (argc > 2) {
+        walker.getNode(&file, "TFile", argv[2], &toVisit, &nodeTypeName);
+    }
+    else {
         toVisit = &file;
+        nodeTypeName = "TFile";
+    }
 
     if (toVisit) {
         MyVisitor visitor;
-        Walker walker(*toVisit, typeResolver);
-        walker.walk(visitor);
+        walker.walk(toVisit, nodeTypeName, visitor);
     }
     
     return 0;

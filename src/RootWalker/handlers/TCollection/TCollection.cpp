@@ -31,11 +31,11 @@ public:
                  const std::string& name, const void* addr,
                  IVisitor& visitor)
     {
-        if (visitor.pre(typeName, true, name) && !isPointer) {
+        if (visitor.pre(typeName, true, name, addr) && !isPointer) {
             const TCollection* collection = static_cast<const TCollection*>(addr);
             this->iterate(collection, visitor);
         }
-        visitor.post(typeName, true, name);
+        visitor.post(typeName, true, name, addr);
     }
     
     
@@ -53,7 +53,7 @@ public:
             if (handler)
                 handler->inspect(objType, false, obj->GetName(), obj, visitor);
             else
-                visitor.unknown(objType, obj->GetName());
+                visitor.unknown(objType, obj->GetName(), obj);
         }
     }
 };

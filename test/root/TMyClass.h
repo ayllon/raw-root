@@ -14,12 +14,12 @@ protected:
     void fillVector()
     {
         // Just fill several floats with incrementing values
-        /*fFloats.ResizeTo(1000);
+        fFloats.ResizeTo(100);
         for (Int_t f = 0; f < fFloats.GetNoElements(); ++f) {
             fFloats[f] = f;
         }
         fInts.push_back(6);
-        fInts.push_back(99);*/
+        fInts.push_back(99);
 
         something = 42;
         value = 88;

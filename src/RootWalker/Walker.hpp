@@ -19,19 +19,22 @@ public:
     /// @param typeName The object type name
     /// @param isArray  If the object is an array or equivalent
     /// @param objName  The object name
+    /// @param obj      A pointer to the object
     /// @return         If it returns false, the walker won't descend into the children
-    virtual bool pre(const std::string& typeName, bool isArray, const std::string& objName) = 0;
+    virtual bool pre(const std::string& typeName, bool isArray, const std::string& objName, const void* obj) = 0;
     
     /// Called after processing a data member
     /// @param typeName The object type name
     /// @param isArray  If the object is an array or equivalent
     /// @param objName  The object name
-    virtual void post(const std::string& typeName, bool isArray, const std::string& objName) = 0;
+    /// @param obj      A pointer to the object
+    virtual void post(const std::string& typeName, bool isArray, const std::string& objName, const void* obj) = 0;
     
     /// Called when an element of unknown type is found.
     /// @param typeName The unknown type
     /// @param objName  The attribute name
-    virtual void unknown(const std::string& typeName, const std::string& objName) = 0;
+    /// @param obj      A pointer to the object
+    virtual void unknown(const std::string& typeName, const std::string& objName, const void* obj) = 0;
     
     /// Called for a basic type with a name. For instance, object attributes.
     /// @param name The attribute name
@@ -49,16 +52,24 @@ class Walker
 {
 public:
     /// Constructor
-    /// @param file The root object to be traversed
-    Walker(const TObject& obj, TypeResolver& typeResolver);
+    /// @param typeResolver A TypeResolver
+    Walker(TypeResolver& typeResolver);
     
     /// Perform the walk
+    /// @param obj The root object to be traversed
+    /// @param objTypeName The root object type name
     /// @param visitor The implementation of IVisitor
-    void walk(IVisitor& visitor);
+    void walk(const void *obj, const std::string& objTypeName, IVisitor& visitor);
+    
+    /// Convenience method to get a node
+    /// Leave in ptr a pointer to the node, and fills typename with the node type name.
+    /// Returns true if found
+    /// i.e. Walker::getNode(file, "rootObj.attr.nestedAttr", &ptr, &typeName)
+    bool getNode(const void* root, const std::string& rootType, const std::string& path,
+                 const void** ptr, std::string* typeName);
     
 protected:
     TypeResolver& typeResolver;
-    const TObject& obj;
 };
 
 }}

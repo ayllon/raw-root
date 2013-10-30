@@ -24,12 +24,12 @@ public:
                  const std::string& name, const void* addr,
                  IVisitor& visitor)
     {
-        if (visitor.pre(typeName, false, name) && !isPointer) {
+        if (visitor.pre(typeName, false, name, addr) && !isPointer) {
             TTree* tree = (TTree*)(addr);
             TObjArray* branches = tree->GetListOfBranches();
             this->iterateBranches(branches, visitor);
         }
-        visitor.post(typeName, false, name);
+        visitor.post(typeName, false, name, addr);
     }
     
     
@@ -48,9 +48,9 @@ public:
                 this->iterateEntries(branch, visitor);
             }
             else {
-                if (visitor.pre("TBranch", false, branch->GetName()))
+                if (visitor.pre("TBranch", false, branch->GetName(), branches))
                     this->iterateBranches(subBranches, visitor);
-                visitor.post("TBranch", false, branch->GetName());
+                visitor.post("TBranch", false, branch->GetName(), branches);
             }
         }
     }
@@ -61,7 +61,7 @@ public:
         if (!branch)
             return;
         
-        if (visitor.pre("TLeaf", true, branch->GetName())) {
+        if (visitor.pre("Double_t", true, branch->GetName(), branch)) {
             Long64_t count = branch->GetEntries();
             for (Long64_t i = 0; i < count; ++i) {
                 branch->GetEntry(i, 1);
@@ -69,7 +69,7 @@ public:
                 this->iterateLeaves(leaves, i, visitor);
             }
         }
-        visitor.post("Double_t", true, branch->GetName());
+        visitor.post("Double_t", true, branch->GetName(), branch);
     }
     
     
@@ -87,13 +87,13 @@ public:
             Double_t value;
             Int_t len = leaf->GetLen();
             if (len > 1) {
-                if (visitor.pre(leafType, true, leaf->GetName())) {
+                if (visitor.pre(leafType, true, leaf->GetName(), leaf)) {
                     for (Int_t j = 0; j < len; ++j) {
                         value = leaf->GetValue(j);
                         visitor.leaf(j, Data("Double_t", &value));
                     }
                 }
-                visitor.post(leafType, true, leaf->GetName());
+                visitor.post(leafType, true, leaf->GetName(), leaf);
             }
             else {
                 value = leaf->GetValue();

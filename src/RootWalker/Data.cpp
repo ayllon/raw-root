@@ -86,6 +86,12 @@ DataType Data::getType() const
 }
 
 
+const void* Data::getRawPointer() const
+{
+    return dataPtr;
+}
+
+
 int8_t Data::getInt8() const
 {
     assert(type == kInt8);

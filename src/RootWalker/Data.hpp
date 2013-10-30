@@ -37,6 +37,9 @@ public:
     /// Get the type as an enumerate
     DataType getType() const;
     
+    /// Get raw pointer
+    const void* getRawPointer(void) const;
+    
     // Get the cast value of the raw data pointed by dataPtr
     
     int8_t      getInt8() const;

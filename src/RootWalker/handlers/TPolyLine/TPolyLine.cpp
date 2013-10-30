@@ -19,21 +19,21 @@ public:
                  const std::string& name, const void* addr,
                  IVisitor& visitor)
     {
-        if (visitor.pre(typeName, false, name) && !isPointer) {
+        if (visitor.pre(typeName, false, name, addr) && !isPointer) {
             const TPolyLine* poly = static_cast<const TPolyLine*>(addr);
             Int_t nPoints = poly->GetN();
             // Number of elements
             visitor.leaf("N", Data("Int_t", &nPoints));
             // First X
-            if (visitor.pre("Double_t", true, "x"))
+            if (visitor.pre("Double_t", true, "x", addr))
                 this->iterate(nPoints, poly->GetX(), visitor);
-            visitor.post("Double_t", true, "x");
+            visitor.post("Double_t", true, "x", addr);
             // Then Y
-            if (visitor.pre("Double_t", true, "y"))
+            if (visitor.pre("Double_t", true, "y", addr))
                 this->iterate(nPoints, poly->GetY(), visitor);
-            visitor.post("Double_t", true, "y");
+            visitor.post("Double_t", true, "y", addr);
         }
-        visitor.post(typeName, false, name);
+        visitor.post(typeName, false, name, addr);
     }
     
     

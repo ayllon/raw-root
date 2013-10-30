@@ -14,7 +14,7 @@ public:
         // No parameters
     }
     
-    ArrayDesc inferSchema(std::vector< ArrayDesc> schemas, boost::shared_ptr< Query> query)
+    ArrayDesc inferSchema(std::vector<ArrayDesc> schemas, boost::shared_ptr<Query> query)
     {
         Attributes outputAttrs;
         outputAttrs.push_back(AttributeDesc(0, "version", TID_STRING, 0, 0));

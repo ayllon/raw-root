@@ -14,11 +14,10 @@ int GenerateFile(const TString& library, const TString& file)
     // A class
     TMyClass obj("A description");
 	obj.SetName("Hello");
-	//obj.fFloats[2] = 5;
+	obj.fFloats[2] = 5;
     obj.Write();
     
     // A vector
-    /*
     TVector firstLevelVector;
     firstLevelVector.ResizeTo(20);
     for (size_t i = 0; i < firstLevelVector.GetNoElements(); ++i)
@@ -34,7 +33,6 @@ int GenerateFile(const TString& library, const TString& file)
         list.Add(line);
     }
     list.Write("AList", TObject::kSingleKey);
-    */
 
     return 0;
 }

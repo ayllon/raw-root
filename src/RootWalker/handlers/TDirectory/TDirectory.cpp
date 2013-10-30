@@ -33,11 +33,11 @@ public:
                  const std::string& name, const void* addr,
                  IVisitor& visitor)
     {
-        if (visitor.pre(typeName, true, name) && !isPointer) {
+        if (visitor.pre(typeName, true, name, addr) && !isPointer) {
             const TDirectory* dir = static_cast<const TDirectory*>(addr);
             this->iterate(dir, visitor);
         }
-        visitor.post(typeName, true, name);
+        visitor.post(typeName, true, name, addr);
     }
     
     
@@ -55,7 +55,7 @@ public:
             if (handler)
                 handler->inspect(key->GetClassName(), false, obj->GetName(), obj, visitor);
             else
-                visitor.unknown(key->GetClassName(), obj->GetName());
+                visitor.unknown(key->GetClassName(), obj->GetName(), obj);
         }
     }
 };

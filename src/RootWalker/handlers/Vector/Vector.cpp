@@ -80,7 +80,7 @@ public:
                  const std::string& name, const void* addr,
                  IVisitor& visitor)
     {
-        if (visitor.pre(typeName, true, name) && !isPointer) {
+        if (visitor.pre(typeName, true, name, addr) && !isPointer) {
             std::string containerTypeName;
             std::string containedTypeName;
             getContainerType(typeName, &containerTypeName, &containedTypeName);
@@ -100,7 +100,7 @@ public:
                 IterateGenericArray<std::vector>(addr, containedTypeName, visitor);
             }
         }
-        visitor.post(typeName, true, name);
+        visitor.post(typeName, true, name, addr);
     }
     
     
