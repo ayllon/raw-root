@@ -12,32 +12,27 @@ Walker::Walker(TypeResolver& typeResolver):
 }
 
 
-void Walker::walk(const void* obj, const std::string& objTypeName, IVisitor& visitor)
+void Walker::walk(const Node& node, IVisitor& visitor)
 {   
-    ITypeHandler* handler = typeResolver.getHandlerForType(objTypeName);
+    ITypeHandler* handler = typeResolver.getHandlerForType(node.getTypeName());
     if (handler)
-        handler->inspect(objTypeName, false, "/", obj, visitor);
+        handler->inspect(node, visitor);
     else
-        visitor.unknown(objTypeName, "/", obj);
+        visitor.unknown(node);
 }
 
 
 class PickerVisitor: public IVisitor
 {
 private:
-    const void ** nodePtr;
-    std::string *nodeTypeName;
+    Node node;
     
     std::vector<std::string> pathComponents;
     size_t depth, maxDepth;
     
 public:
-    PickerVisitor(const std::string& path, const void** ptr, std::string* typeName):
-        nodePtr(ptr), nodeTypeName(typeName), depth(0)
+    PickerVisitor(const std::string& path): depth(0)
     {
-        *ptr = nullptr;
-        nodeTypeName->clear();
-        
         std::istringstream helper(path);
         std::string c;
         pathComponents.push_back("/");
@@ -47,82 +42,74 @@ public:
         maxDepth = pathComponents.size() - 1;
     }
     
-    bool foundNode(void)
+    Node getNode(void)
     {
-        return *nodePtr != nullptr;
+        return node;
     }
     
-    bool pre(const std::string& typeName, bool isArray, const std::string& objName, const void* obj)
+    bool pre(const Node& visitedNode)
     {
         bool recurse = false;
-        if (*nodePtr == nullptr && depth <= maxDepth) {
+        if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
-            if (depth == maxDepth && lookingFor == objName) {
-                *nodePtr = obj;
-                *nodeTypeName = typeName;
+            if (depth == maxDepth && lookingFor == visitedNode.getName()) {
+                node = visitedNode;
                 recurse = false;
             }
             else {
-                recurse = (objName == lookingFor);
+                recurse = (visitedNode.getName() == lookingFor);
             }
         }
         ++depth;
     }
     
-    void post(const std::string& typeName, bool isArray, const std::string& objName, const void* obj)
+    void post(const Node& visitedNode)
     {
         --depth;
     }
     
-    void unknown(const std::string& typeName, const std::string& objName, const void* obj)
+    void unknown(const Node& visitedNode)
     {
-        if (*nodePtr == nullptr && depth <= maxDepth) {
+        if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
-            if (depth == maxDepth && lookingFor == objName) {
-                *nodePtr = obj;
-                *nodeTypeName = typeName;
-            }
+            if (depth == maxDepth && lookingFor == visitedNode.getName())
+                node = visitedNode;
         }
     }
     
     void leaf(const std::string& name, const Data& data)
     {
-        if (*nodePtr == nullptr && depth <= maxDepth) {
+        if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
-            if (depth == maxDepth && lookingFor == name) {
-                *nodePtr = data.getRawPointer();
-                *nodeTypeName = data.getTypeName();
-            }
+            if (depth == maxDepth && lookingFor == name)
+                node = Node(name, data);
         }
     }
     
     void leaf(size_t index, const Data& data)
     {
-        if (*nodePtr == nullptr && depth <= maxDepth) {
+        if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
             std::ostringstream indexStr;
             indexStr << index;
-            if (depth == maxDepth && lookingFor == indexStr.str()) {
-                *nodePtr = data.getRawPointer();
-                *nodeTypeName = data.getTypeName();
-            }
+            if (depth == maxDepth && lookingFor == indexStr.str())
+                node = Node(indexStr.str(), data);
         }
     }
 };
 
 
-bool Walker::getNode(const void* root, const std::string& rootType,
-    const std::string& path, const void** ptr, std::string* typeName)
+Node Walker::getChildNode(const Node& node, const std::string& path)
 {
-    ITypeHandler* handler = typeResolver.getHandlerForType(rootType);
+    ITypeHandler* handler = typeResolver.getHandlerForType(node.getTypeName());
     if (!handler)
-        return false;
+        return Node();
     
-    PickerVisitor picker(path, ptr, typeName);
-    handler->inspect(rootType, false, "/", root, picker);
-    return picker.foundNode();
+    PickerVisitor picker(path);
+    handler->inspect(node, picker);
+    return picker.getNode();
 }

@@ -29,15 +29,13 @@ public:
     }
     
     
-    void inspect(const std::string& typeName, bool isPointer,
-                 const std::string& name, const void* addr,
-                 IVisitor& visitor)
+    void inspect(const Node& node, IVisitor& visitor)
     {
-        if (visitor.pre(typeName, true, name, addr) && !isPointer) {
-            const TDirectory* dir = static_cast<const TDirectory*>(addr);
+        if (visitor.pre(ArrayNode(node)) && !node.isPointer()) {
+            const TDirectory* dir = static_cast<const TDirectory*>(node.getAddress());
             this->iterate(dir, visitor);
         }
-        visitor.post(typeName, true, name, addr);
+        visitor.post(ArrayNode(node));
     }
     
     
@@ -52,10 +50,11 @@ public:
             TKey*    key = static_cast<TKey*>(keys->At(i));
             TObject* obj = key->ReadObj();
             ITypeHandler* handler = resolver->getHandlerForType(key->GetClassName());
+            Node node(key->GetClassName(), obj->GetName(), obj);
             if (handler)
-                handler->inspect(key->GetClassName(), false, obj->GetName(), obj, visitor);
+                handler->inspect(node, visitor);
             else
-                visitor.unknown(key->GetClassName(), obj->GetName(), obj);
+                visitor.unknown(node);
         }
     }
 };

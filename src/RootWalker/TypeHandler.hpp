@@ -19,8 +19,7 @@ public:
     virtual bool recognize(const std::string& typeName) = 0;
     
     /// Delegate processing of the type
-    virtual void inspect(const std::string& typeName, bool isPointer, 
-                         const std::string& name, const void* addr,
+    virtual void inspect(const Node& node,
                          IVisitor& visitor) = 0;
                          
 private:

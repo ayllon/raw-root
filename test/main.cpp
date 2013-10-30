@@ -22,12 +22,12 @@ public:
     }
     
     // Before children
-    bool pre(const std::string& typeName, bool isArray, const std::string& objName, const void* obj)
+    bool pre(const Node& node)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '+' << typeName << ' ' << objName.substr(0, 30);
+        std::cout << indent << '+' << node.getTypeName() << ' ' << node.getName().substr(0, 30);
         ++tabLevel;
-        if (isArray)
+        if (node.isArray())
             std::cout << " [";
         else
             std::cout << " {";
@@ -36,11 +36,11 @@ public:
     }
     
     // After children
-    void post(const std::string& typeName, bool isArray, const std::string& objName, const void* obj)
+    void post(const Node& node)
     {
         --tabLevel;
         std::string indent(tabLevel, '\t');
-        if (isArray)
+        if (node.isArray())
             std::cout << std::endl << indent << " ]" << std::endl;
         else
             std::cout << indent << " }" << std::endl;
@@ -67,10 +67,10 @@ public:
     }
     
     // Unknown elements
-    void unknown(const std::string& typeName, const std::string& objName, const void* obj)
+    void unknown(const Node& node)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '?' << typeName << ' ' << objName << std::endl;
+        std::cout << indent << '?' << node.getTypeName() << ' ' << node.getName() << std::endl;
     }
 };
 
@@ -97,19 +97,13 @@ int main(int argc, char** argv)
     TypeResolver typeResolver(getHandlerLibraryPath());
     Walker walker(typeResolver);
     
-    const void* toVisit = nullptr;
-    std::string nodeTypeName;
-    if (argc > 2) {
-        walker.getNode(&file, "TFile", argv[2], &toVisit, &nodeTypeName);
-    }
-    else {
-        toVisit = &file;
-        nodeTypeName = "TFile";
-    }
+    Node rootNode(file);
+    if (argc > 2)
+        rootNode = walker.getChildNode(rootNode, argv[2]);
 
-    if (toVisit) {
+    if (rootNode) {
         MyVisitor visitor;
-        walker.walk(toVisit, nodeTypeName, visitor);
+        walker.walk(rootNode, visitor);
     }
     
     return 0;

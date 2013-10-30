@@ -17,14 +17,12 @@ public:
     }
     
     
-    void inspect(const std::string& typeName, bool isPointer, 
-                 const std::string& name, const void* addr,
-                 IVisitor& visitor)
+    void inspect(const Node& node, IVisitor& visitor)
     {
-        if (!isPointer && addr) {
-            const TObjString* objStr = static_cast<const TObjString*>(addr);
+        if (!node.isPointer() && node.getAddress()) {
+            const TObjString* objStr = static_cast<const TObjString*>(node.getAddress());
             TString str = objStr->GetString();
-            visitor.leaf(name, Data("TString", &str));
+            visitor.leaf(node.getName(), Data("TString", &str));
         }
     }
 };

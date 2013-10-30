@@ -19,16 +19,13 @@ bool TObjectHandler::recognize(const std::string& typeName)
 }
 
 
-void TObjectHandler::inspect(const std::string& typeName, bool isPointer, 
-                             const std::string& name, const void* addr,
-                             IVisitor& visitor)
+void TObjectHandler::inspect(const Node& node, IVisitor& visitor)
 {
-    TObject* obj = (TObject*)(addr);
-    
-    this->visitor = &visitor;
-    if (visitor.pre(typeName, false, obj->GetName(), obj) && !isPointer)
-        obj->ShowMembers(*this);
-    visitor.post(typeName, false, obj->GetName(), obj);
+    if (visitor.pre(node)) {
+        this->visitor = &visitor;
+        ((TObject*)node.getAddress())->ShowMembers(*this);
+    }
+    visitor.post(node);
 }
 
 
@@ -51,12 +48,11 @@ void TObjectHandler::Inspect(TClass* klass, const char* parent, const char* name
     }
     // Complex types
     else {
+        Node thisNode(memberType, member->IsaPointer(), name, addr);
         ITypeHandler* handler = resolver.getHandlerForType(memberType);
         if (handler)
-            handler->inspect(memberType, member->IsaPointer(),
-                             name, addr,
-                             *(this->visitor));
+            handler->inspect(thisNode, *this->visitor);
         else
-            this->visitor->unknown(memberType, name, addr);
+            this->visitor->unknown(thisNode);
     }
 }

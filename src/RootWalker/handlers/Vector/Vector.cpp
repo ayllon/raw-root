@@ -76,31 +76,31 @@ public:
     }
     
     
-    void inspect(const std::string& typeName, bool isPointer,
-                 const std::string& name, const void* addr,
-                 IVisitor& visitor)
+    void inspect(const Node& node, IVisitor& visitor)
     {
-        if (visitor.pre(typeName, true, name, addr) && !isPointer) {
-            std::string containerTypeName;
-            std::string containedTypeName;
-            getContainerType(typeName, &containerTypeName, &containedTypeName);
-            
+        std::string containerTypeName;
+        std::string containedTypeName;
+        getContainerType(node.getTypeName(), &containerTypeName, &containedTypeName);
+        
+        ArrayNode arrayNode(node, containedTypeName);
+        
+        if (visitor.pre(arrayNode) && !node.isPointer()) {
             DataType containedType = Data::typeFromStr(containedTypeName);
             
             // TVector is a typedef ot TVector<Float_t>
             if (containerTypeName == "TVector") {
-                IterateGenericArray<TVectorT>(addr, "Float_t", visitor);
+                IterateGenericArray<TVectorT>(node.getAddress(), "Float_t", visitor);
             }
             // TVectorT types
             else if (containerTypeName == "TVectorT") {
-                IterateGenericArray<TVectorT>(addr, containedTypeName, visitor);
+                IterateGenericArray<TVectorT>(node.getAddress(), containedTypeName, visitor);
             }
             // std::vector types
             else if (containerTypeName == "vector") {
-                IterateGenericArray<std::vector>(addr, containedTypeName, visitor);
+                IterateGenericArray<std::vector>(node.getAddress(), containedTypeName, visitor);
             }
         }
-        visitor.post(typeName, true, name, addr);
+        visitor.post(arrayNode);
     }
     
     

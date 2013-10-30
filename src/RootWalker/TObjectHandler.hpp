@@ -18,10 +18,7 @@ public:
     
     bool recognize(const std::string& typeName);    
     
-    void inspect(const std::string& typeName, bool isPointer, 
-                 const std::string& name, const void* addr,
-                 IVisitor& visitor);
-    
+    void inspect(const Node& node, IVisitor& visitor);
     
     /// Overloaded method
     /// @param klass  The class of the object being inspected

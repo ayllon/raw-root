@@ -15,25 +15,25 @@ public:
     }
     
     
-    void inspect(const std::string& typeName, bool isPointer, 
-                 const std::string& name, const void* addr,
-                 IVisitor& visitor)
+    void inspect(const Node& node, IVisitor& visitor)
     {
-        if (visitor.pre(typeName, false, name, addr) && !isPointer) {
-            const TPolyLine* poly = static_cast<const TPolyLine*>(addr);
+        if (visitor.pre(node) && !node.isPointer()) {
+            const TPolyLine* poly = static_cast<const TPolyLine*>(node.getAddress());
             Int_t nPoints = poly->GetN();
             // Number of elements
             visitor.leaf("N", Data("Int_t", &nPoints));
             // First X
-            if (visitor.pre("Double_t", true, "x", addr))
+            ArrayNode xArray("TPolyLine<Double_t>", "Double_t", "x", poly->GetX());
+            if (visitor.pre(xArray))
                 this->iterate(nPoints, poly->GetX(), visitor);
-            visitor.post("Double_t", true, "x", addr);
+            visitor.post(xArray);
             // Then Y
-            if (visitor.pre("Double_t", true, "y", addr))
+            ArrayNode yArray("TPolyLine<Double_t>", "Double_t", "y", poly->GetY());
+            if (visitor.pre(yArray))
                 this->iterate(nPoints, poly->GetY(), visitor);
-            visitor.post("Double_t", true, "y", addr);
+            visitor.post(yArray);
         }
-        visitor.post(typeName, false, name, addr);
+        visitor.post(node);
     }
     
     

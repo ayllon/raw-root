@@ -3,6 +3,7 @@
 
 #include <TFile.h>
 #include "Data.hpp"
+#include "Node.hpp"
 
 namespace scidb {
 namespace root {
@@ -16,25 +17,17 @@ class IVisitor
 {
 public:
     /// Called before desdencing into a data member
-    /// @param typeName The object type name
-    /// @param isArray  If the object is an array or equivalent
-    /// @param objName  The object name
-    /// @param obj      A pointer to the object
-    /// @return         If it returns false, the walker won't descend into the children
-    virtual bool pre(const std::string& typeName, bool isArray, const std::string& objName, const void* obj) = 0;
+    /// @param node The node being visited.
+    /// @return If it returns false, the walker won't descend into the children
+    virtual bool pre(const Node& node) = 0;
     
     /// Called after processing a data member
-    /// @param typeName The object type name
-    /// @param isArray  If the object is an array or equivalent
-    /// @param objName  The object name
-    /// @param obj      A pointer to the object
-    virtual void post(const std::string& typeName, bool isArray, const std::string& objName, const void* obj) = 0;
+    /// @param node The node being visited.
+    virtual void post(const Node& node) = 0;
     
     /// Called when an element of unknown type is found.
-    /// @param typeName The unknown type
-    /// @param objName  The attribute name
-    /// @param obj      A pointer to the object
-    virtual void unknown(const std::string& typeName, const std::string& objName, const void* obj) = 0;
+    /// @param node The node being visited.
+    virtual void unknown(const Node& node) = 0;
     
     /// Called for a basic type with a name. For instance, object attributes.
     /// @param name The attribute name
@@ -56,17 +49,15 @@ public:
     Walker(TypeResolver& typeResolver);
     
     /// Perform the walk
-    /// @param obj The root object to be traversed
-    /// @param objTypeName The root object type name
+    /// @param node Holder to a Root object
     /// @param visitor The implementation of IVisitor
-    void walk(const void *obj, const std::string& objTypeName, IVisitor& visitor);
+    void walk(const Node& node, IVisitor& visitor);
     
-    /// Convenience method to get a node
-    /// Leave in ptr a pointer to the node, and fills typename with the node type name.
-    /// Returns true if found
-    /// i.e. Walker::getNode(file, "rootObj.attr.nestedAttr", &ptr, &typeName)
-    bool getNode(const void* root, const std::string& rootType, const std::string& path,
-                 const void** ptr, std::string* typeName);
+    /// Convenience method to get a child node
+    /// i.e.
+    /// TFile file(...);
+    /// Walker::getNode(Node(file), "rootObj.attr.nestedAttr")
+    Node getChildNode(const Node& node, const std::string& path);
     
 protected:
     TypeResolver& typeResolver;

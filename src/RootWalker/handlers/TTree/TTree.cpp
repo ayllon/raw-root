@@ -28,7 +28,7 @@ public:
     
     bool isDoubleBranch(const std::string& typeName)
     {
-        return typeName == "TBrach<Double_t>";
+        return typeName == "TBranch<Double_t>";
     }
     
     
@@ -38,25 +38,23 @@ public:
     }
     
     
-    void inspect(const std::string& typeName, bool isPointer, 
-                 const std::string& name, const void* addr,
-                 IVisitor& visitor)
+    void inspect(const Node& node, IVisitor& visitor)
     {
-        if (isTree(typeName)) {
-            if (visitor.pre(typeName, false, name, addr) && !isPointer) {
-                TTree* tree = (TTree*)(addr);
+        if (isTree(node.getTypeName())) {
+            if (visitor.pre(node) && !node.isPointer()) {
+                TTree* tree = (TTree*)(node.getAddress());
                 TObjArray* branches = tree->GetListOfBranches();
                 this->iterateBranchArray(branches, visitor);
             }
-            visitor.post(typeName, false, name, addr);
+            visitor.post(node);
         }
-        else if (isBranch(typeName)) {
-            TBranch* branch = (TBranch*)(addr);
-            this->iterateBranch(name, branch, visitor);
+        else if (isBranch(node.getTypeName())) {
+            TBranch* branch = (TBranch*)(node.getAddress());
+            this->iterateBranch(node.getName(), branch, visitor);
         }
-        else if (isDoubleBranch(typeName)) {
-            TBranch* branch = (TBranch*)(addr);
-            this->iterateEntries(name, branch, visitor);
+        else if (isDoubleBranch(node.getTypeName())) {
+            TBranch* branch = (TBranch*)(node.getAddress());
+            this->iterateEntries(node.getName(), branch, visitor);
         }
     }
     
@@ -69,9 +67,10 @@ public:
             this->iterateEntries(branch->GetName(), branch, visitor);
         }
         else {
-            if (visitor.pre("TBranch", false, name, branch))
+            Node branchNode("TBranch", name, branch);
+            if (visitor.pre(branchNode))
                 this->iterateBranchArray(subBranches, visitor);
-            visitor.post("TBranch", false, name, branch);
+            visitor.post(branchNode);
         }
     }
     
@@ -95,7 +94,8 @@ public:
         if (!branch)
             return;
         
-        if (visitor.pre("TBrach<Double_t>", true, name, branch)) {
+        ArrayNode branchNode("TBranch<Double_t>", "Double_t", name, branch);
+        if (visitor.pre(branchNode)) {
             Long64_t count = branch->GetEntries();
             for (Long64_t i = 0; i < count; ++i) {
                 branch->GetEntry(i, 1);
@@ -103,7 +103,7 @@ public:
                 this->iterateLeaves(leaves, i, visitor);
             }
         }
-        visitor.post("TBrach<Double_t>", true, name, branch);
+        visitor.post(branchNode);
     }
     
     
@@ -121,13 +121,14 @@ public:
             Double_t value;
             Int_t len = leaf->GetLen();
             if (len > 1) {
-                if (visitor.pre(leafType, true, leaf->GetName(), leaf)) {
+                ArrayNode leafNode(leafType, "Double_t", leaf->GetName(), leaf);
+                if (visitor.pre(leafNode)) {
                     for (Int_t j = 0; j < len; ++j) {
                         value = leaf->GetValue(j);
                         visitor.leaf(j, Data("Double_t", &value));
                     }
                 }
-                visitor.post(leafType, true, leaf->GetName(), leaf);
+                visitor.post(leafNode);
             }
             else {
                 value = leaf->GetValue();

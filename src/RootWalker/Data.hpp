@@ -1,5 +1,5 @@
-#ifndef __DATA_HPP_
-#define __DATA_HPP_
+#ifndef __DATA_HPP
+#define __DATA_HPP
 
 #include <ostream>
 #include <stdint.h>
@@ -61,4 +61,4 @@ std::ostream& operator << (std::ostream& o, const Data& d);
 
 }}
 
-#endif // __DATA_HPP_
+#endif // __DATA_HPP
