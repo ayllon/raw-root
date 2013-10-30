@@ -13,10 +13,21 @@ class TTreeHandler: public ITypeHandler
 {
 public:
     
-    bool recognize(const std::string& typeName)
+    bool isTree(const std::string& typeName)
     {
         TClass* klass = TClass::GetClass(typeName.c_str());
         return klass && klass->InheritsFrom("TTree");
+    }
+    
+    bool isBranch(const std::string& typeName)
+    {
+        TClass* klass = TClass::GetClass(typeName.c_str());
+        return klass && klass->InheritsFrom("TBranch");
+    }
+    
+    bool recognize(const std::string& typeName)
+    {
+        return isTree(typeName) || isBranch(typeName);
     }
     
     
@@ -24,16 +35,37 @@ public:
                  const std::string& name, const void* addr,
                  IVisitor& visitor)
     {
-        if (visitor.pre(typeName, false, name, addr) && !isPointer) {
-            TTree* tree = (TTree*)(addr);
-            TObjArray* branches = tree->GetListOfBranches();
-            this->iterateBranches(branches, visitor);
+        if (isTree(typeName)) {
+            if (visitor.pre(typeName, false, name, addr) && !isPointer) {
+                TTree* tree = (TTree*)(addr);
+                TObjArray* branches = tree->GetListOfBranches();
+                this->iterateBranchArray(branches, visitor);
+            }
+            visitor.post(typeName, false, name, addr);
         }
-        visitor.post(typeName, false, name, addr);
+        else if (isBranch(typeName)) {
+            TBranch* branch = (TBranch*)(addr);
+            this->iterateBranch(branch, visitor);
+        }
     }
     
     
-    void iterateBranches(TObjArray* branches, IVisitor& visitor)
+    void iterateBranch(TBranch* branch, IVisitor& visitor)
+    {
+        TObjArray* subBranches = branch->GetListOfBranches();
+        
+        if (subBranches->GetEntries() == 0) {
+            this->iterateEntries(branch, visitor);
+        }
+        else {
+            if (visitor.pre("TBranch", false, branch->GetName(), branch))
+                this->iterateBranchArray(subBranches, visitor);
+            visitor.post("TBranch", false, branch->GetName(), branch);
+        }
+    }
+    
+    
+    void iterateBranchArray(TObjArray* branches, IVisitor& visitor)
     {
         if (!branches)
             return;
@@ -42,16 +74,7 @@ public:
         TObject* obj;
         while ((obj = iterator->Next())) {
             TBranch* branch = static_cast<TBranch*>(obj);
-            TObjArray* subBranches = branch->GetListOfBranches();
-            
-            if (subBranches->GetEntries() == 0) {
-                this->iterateEntries(branch, visitor);
-            }
-            else {
-                if (visitor.pre("TBranch", false, branch->GetName(), branches))
-                    this->iterateBranches(subBranches, visitor);
-                visitor.post("TBranch", false, branch->GetName(), branches);
-            }
+            this->iterateBranch(branch, visitor);
         }
     }
     
@@ -61,7 +84,7 @@ public:
         if (!branch)
             return;
         
-        if (visitor.pre("Double_t", true, branch->GetName(), branch)) {
+        if (visitor.pre("TBrach<Double_t>", true, branch->GetName(), branch)) {
             Long64_t count = branch->GetEntries();
             for (Long64_t i = 0; i < count; ++i) {
                 branch->GetEntry(i, 1);
@@ -69,7 +92,7 @@ public:
                 this->iterateLeaves(leaves, i, visitor);
             }
         }
-        visitor.post("Double_t", true, branch->GetName(), branch);
+        visitor.post("TBrach<Double_t>", true, branch->GetName(), branch);
     }
     
     
