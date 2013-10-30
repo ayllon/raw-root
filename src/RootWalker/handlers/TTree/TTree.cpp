@@ -45,12 +45,12 @@ public:
         }
         else if (isBranch(typeName)) {
             TBranch* branch = (TBranch*)(addr);
-            this->iterateBranch(branch, visitor);
+            this->iterateBranch(name, branch, visitor);
         }
     }
     
     
-    void iterateBranch(TBranch* branch, IVisitor& visitor)
+    void iterateBranch(const std::string& name, TBranch* branch, IVisitor& visitor)
     {
         TObjArray* subBranches = branch->GetListOfBranches();
         
@@ -58,9 +58,9 @@ public:
             this->iterateEntries(branch, visitor);
         }
         else {
-            if (visitor.pre("TBranch", false, branch->GetName(), branch))
+            if (visitor.pre("TBranch", false, name, branch))
                 this->iterateBranchArray(subBranches, visitor);
-            visitor.post("TBranch", false, branch->GetName(), branch);
+            visitor.post("TBranch", false, name, branch);
         }
     }
     
@@ -74,7 +74,7 @@ public:
         TObject* obj;
         while ((obj = iterator->Next())) {
             TBranch* branch = static_cast<TBranch*>(obj);
-            this->iterateBranch(branch, visitor);
+            this->iterateBranch(branch->GetName(), branch, visitor);
         }
     }
     

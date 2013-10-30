@@ -26,9 +26,9 @@ void TObjectHandler::inspect(const std::string& typeName, bool isPointer,
     TObject* obj = (TObject*)(addr);
     
     this->visitor = &visitor;
-    if (visitor.pre(typeName, false, name, obj) && !isPointer)
+    if (visitor.pre(typeName, false, obj->GetName(), obj) && !isPointer)
         obj->ShowMembers(*this);
-    visitor.post(typeName, false, name, obj);
+    visitor.post(typeName, false, obj->GetName(), obj);
 }
 
 
