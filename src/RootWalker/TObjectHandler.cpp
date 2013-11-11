@@ -50,7 +50,7 @@ void TObjectHandler::Inspect(TClass* klass, const char* parent, const char* name
     else {
         Node thisNode(memberType, member->IsaPointer(), name, addr);
         ITypeHandler* handler = resolver.getHandlerForType(memberType);
-        if (handler)
+        if (handler && !member->IsaPointer())
             handler->inspect(thisNode, *this->visitor);
         else
             this->visitor->unknown(thisNode);
