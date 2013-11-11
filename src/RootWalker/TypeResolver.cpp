@@ -23,10 +23,11 @@ protected:
     ITypeHandlerList handlers;
     
     TypeResolver* publicApi;
+    log4cxx::LoggerPtr logger;
     
 public:
-    TypeResolverImpl(TypeResolver* publicApi):
-        publicApi(publicApi)
+    TypeResolverImpl(TypeResolver* publicApi, log4cxx::LoggerPtr logger):
+        publicApi(publicApi), logger(logger)
     {
     }
     
@@ -63,8 +64,16 @@ public:
         if (dl) {
             typedef void (*RegisterCall)(TypeResolver*);
             RegisterCall regCall = (RegisterCall)(dlsym(dl, "registerTypes"));
-            if (regCall)
+            if (regCall) {
                 regCall(publicApi);
+                LOG4CXX_DEBUG(logger, "Registered plugin " << path);
+            }
+            else {
+                LOG4CXX_DEBUG(logger, "Tried to register plugin " << path << " but could not find registerTypes");
+            }
+        }
+        else {
+            LOG4CXX_DEBUG(logger, "Could not register plugin " << path << ": " << dlerror());
         }
     }
     
@@ -74,6 +83,8 @@ public:
     {
         if (depth > 5)
             return;
+        
+        LOG4CXX_TRACE(logger, "Searching plugins under  " << handlerLocation);
         
         DIR* dirp = ::opendir(handlerLocation.c_str());
         if (dirp == nullptr)
@@ -94,8 +105,8 @@ public:
 
 
 
-TypeResolver::TypeResolver(const std::string& handlerLocation):
-    implPtr(new TypeResolverImpl(this))
+TypeResolver::TypeResolver(const std::string& handlerLocation, log4cxx::LoggerPtr logger):
+    implPtr(new TypeResolverImpl(this, logger))
 {
     implPtr->loadHandlersFromLocation(handlerLocation);
     // Force generic object handler last

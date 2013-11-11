@@ -13,11 +13,18 @@ class TTreeHandler: public ITypeHandler
 {
 public:
     
+    std::string getHandlerId()
+    {
+        return "TTreeHandler";
+    }
+    
+    
     bool isTree(const std::string& typeName)
     {
         TClass* klass = TClass::GetClass(typeName.c_str());
         return klass && klass->InheritsFrom("TTree");
     }
+    
     
     bool isBranch(const std::string& typeName)
     {

@@ -68,6 +68,12 @@ public:
     }
     
     
+    std::string getHandlerId()
+    {
+        return "VectorHandler";
+    }
+    
+    
     bool recognize(const std::string& typeName)
     {
         return typeName.compare(0, 7, "TVector") == 0 ||

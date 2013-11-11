@@ -19,14 +19,15 @@ public:
     boost::shared_ptr<Array> execute(vector<boost::shared_ptr<Array> >& inputArrays, boost::shared_ptr<Query> query)
     {
         if (query->getCoordinatorID() != COORDINATOR_INSTANCE ) {
-            return shared_ptr<Array> (new MemArray(_schema));
+            return shared_ptr<Array> (new MemArray(_schema, query));
         }
         
         const string& filePath = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getString();
+        const string& objPath = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[1])->getExpression()->evaluate().getString();
         
         vector<boost::shared_ptr<Tuple> > tuples;
         Tuple &tuple = *new Tuple(1);
-        tuple[0].setString(filePath.c_str());
+        tuple[0].setDouble(0);
         tuples.push_back(boost::shared_ptr<Tuple>(&tuple));
         
         return boost::shared_ptr<Array>(new TupleArray(_schema, tuples));

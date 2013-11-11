@@ -6,8 +6,8 @@ using namespace scidb::root;
 
 
 
-Walker::Walker(TypeResolver& typeResolver):
-    typeResolver(typeResolver)
+Walker::Walker(TypeResolver& typeResolver, log4cxx::LoggerPtr logger):
+    typeResolver(typeResolver), logger(logger)
 {
 }
 
@@ -29,9 +29,11 @@ private:
     
     std::vector<std::string> pathComponents;
     size_t depth, maxDepth;
+    log4cxx::LoggerPtr logger;
     
 public:
-    PickerVisitor(const std::string& path): depth(0)
+    PickerVisitor(const std::string& path, log4cxx::LoggerPtr logger):
+        depth(0), logger(logger)
     {
         std::istringstream helper(path);
         std::string c;
@@ -49,19 +51,23 @@ public:
     
     bool pre(const Node& visitedNode)
     {
+        LOG4CXX_DEBUG(logger, "Searching under " << visitedNode.getName());
+        
         bool recurse = false;
         if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
             if (depth == maxDepth && lookingFor == visitedNode.getName()) {
+                LOG4CXX_DEBUG(logger, "Found node " << lookingFor);
                 node = visitedNode;
                 recurse = false;
             }
             else {
-                recurse = (visitedNode.getName() == lookingFor);
+                recurse = (visitedNode.getName() == lookingFor || lookingFor == "/") && !visitedNode.isPointer();
             }
         }
         ++depth;
+        return recurse;
     }
     
     void post(const Node& visitedNode)
@@ -109,7 +115,9 @@ Node Walker::getChildNode(const Node& node, const std::string& path)
     if (!handler)
         return Node();
     
-    PickerVisitor picker(path);
+    LOG4CXX_DEBUG(logger, "Using " << handler->getHandlerId() << " for the root node, which is a " << node.getTypeName());
+    
+    PickerVisitor picker(path, logger);
     handler->inspect(node, picker);
     return picker.getNode();
 }

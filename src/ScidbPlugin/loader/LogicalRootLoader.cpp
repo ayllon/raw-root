@@ -1,6 +1,27 @@
+#include <log4cxx/logger.h>
 #include <query/Operator.h>
+#include <system/Exceptions.h>
+#include <TypeResolver.hpp>
+#include <Walker.hpp>
+
+#include "AttrFinder.hpp"
 
 using namespace scidb;
+using namespace scidb::root;
+
+
+#ifndef BUILD_PATH
+#  define BUILD_PATH "/usr/lib64/scidbroot/"
+#endif
+static std::string getHandlerLibraryPath(void)
+{
+    const char* envPath = getenv("HANDLER_LIBRARY_PATH");
+    if (envPath)
+        return envPath;
+    return std::string(BUILD_PATH);
+}
+
+static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.common.thread"));
 
 /**
  * Logical Root Loader operator
@@ -15,15 +36,70 @@ public:
         ADD_PARAM_CONSTANT("string");
     }
     
+    void getParameters(boost::shared_ptr<Query> query, string& filePath, string& objPath)
+    {
+        if (_parameters.size() < 2) {
+            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION)
+                  << "illegal number of parameters passed to LogicalRootLoader";
+        }
+        
+        shared_ptr<OperatorParam>const& fParam = _parameters[0];
+        shared_ptr<OperatorParam>const& oParam = _parameters[1];
+        
+        filePath = evaluate(((shared_ptr<OperatorParamLogicalExpression>&) fParam)->
+                        getExpression(), query, TID_STRING).getString();
+        objPath = evaluate(((shared_ptr<OperatorParamLogicalExpression>&) oParam)->
+                        getExpression(), query, TID_STRING).getString();
+    }
+    
     ArrayDesc inferSchema(std::vector<ArrayDesc> schemas, boost::shared_ptr<Query> query)
     {
-        const string& filePath = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[0])->getExpression()->evaluate().getString();
-        const string& objName = ((boost::shared_ptr<OperatorParamPhysicalExpression>&)_parameters[1])->getExpression()->evaluate().getString();
         
-        // Cells are one single float. At least, for the moment being.
-        Attributes attrs(1);
-        attrs[0] = AttributeDesc(0, "file",  TID_STRING, 0, 0);
+        string filePath;
+        string objPath;
+        getParameters(query, filePath, objPath);
+        
+        TFile rFd(filePath.c_str());
+        if (rFd.IsZombie()) {
+            char errDescr[64];
+            strerror_r(rFd.GetErrno(), errDescr, sizeof(errDescr));
+            LOG4CXX_FATAL(logger, "Could not load " << filePath << ": " << errDescr);
+            throw SYSTEM_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_CANT_OPEN_FILE) << filePath << rFd.GetErrno();
+        }
+        
+        TypeResolver typeResolver(getHandlerLibraryPath(), logger);        
+        
+        Walker walker(typeResolver);
+        Node rootNode(rFd);
+        rootNode = walker.getChildNode(rootNode, objPath);
+        
+        if (!rootNode) {
+            LOG4CXX_FATAL(logger, "Could not find the object " << filePath << "::" << objPath);
+            throw SYSTEM_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_ARRAY_DOESNT_EXIST) << objPath;
+        }
+        
+        LOG4CXX_DEBUG(logger, "Loaded " << filePath << "::" << objPath);
+        
+        // Figure out the attributes
+        AttrFinder arrayFinder;
+        walker.walk(rootNode, arrayFinder);
+        
+        std::vector<Node> arrayAttrs = arrayFinder.getAttributes();
+        size_t nAttrs = arrayAttrs.size();
+        
+        if (nAttrs == 0)
+            throw SYSTEM_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_OP_NORMALIZE_ERROR3);
+        
+        LOG4CXX_DEBUG(logger, "Found " << nAttrs << " valid attributes");
+        Attributes attrs(nAttrs);
+        
+        for (size_t i = 0; i < nAttrs; ++i) {
+            const Node& node = arrayAttrs[i];
+            LOG4CXX_DEBUG(logger, "\t" << node.getName());
+            attrs[i] = AttributeDesc(0, node.getName(), TID_DOUBLE, 0, 0);
+        }
 
+        // Dimensions
         Dimensions outputDims;
         outputDims.push_back(DimensionDesc("v",
             0, 0, // start, end

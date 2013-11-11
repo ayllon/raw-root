@@ -10,13 +10,19 @@ class TObjStringHandler: public ITypeHandler
 {
 public:
     
+    std::string getHandlerId()
+    {
+        return "TObjStringHandler";
+    }
+
+
     bool recognize(const std::string& typeName)
     {
         TClass* klass = TClass::GetClass(typeName.c_str());
         return klass && klass->InheritsFrom("TObjString");
     }
-    
-    
+
+
     void inspect(const Node& node, IVisitor& visitor)
     {
         if (!node.isPointer() && node.getAddress()) {

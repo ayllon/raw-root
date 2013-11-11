@@ -12,6 +12,12 @@ TObjectHandler::TObjectHandler(TypeResolver& resolver):
 }
 
 
+std::string TObjectHandler::getHandlerId()
+{
+    return "TObjectHandler";
+}
+
+
 bool TObjectHandler::recognize(const std::string& typeName)
 {
     TClass* klass = TClass::GetClass(typeName.c_str());

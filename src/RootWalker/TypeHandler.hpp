@@ -15,6 +15,9 @@ public:
     /// Destructor
     virtual ~ITypeHandler() {};
     
+    /// Handler ID
+    virtual std::string getHandlerId() = 0;
+    
     /// Return true if this handler recognize the type
     virtual bool recognize(const std::string& typeName) = 0;
     

@@ -22,7 +22,7 @@ public:
     {
         if (query->getCoordinatorID() != COORDINATOR_INSTANCE )
         {
-            return shared_ptr<Array> (new MemArray(_schema));
+            return shared_ptr<Array> (new MemArray(_schema, query));
         }
         
         vector<boost::shared_ptr<Tuple> > tuples;

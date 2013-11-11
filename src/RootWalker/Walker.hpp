@@ -2,6 +2,7 @@
 #define __WALKER_HPP
 
 #include <TFile.h>
+#include <log4cxx/logger.h>
 #include "Data.hpp"
 #include "Node.hpp"
 
@@ -46,7 +47,9 @@ class Walker
 public:
     /// Constructor
     /// @param typeResolver A TypeResolver
-    Walker(TypeResolver& typeResolver);
+    /// @param logger       Logger to use
+    Walker(TypeResolver& typeResolver,
+           log4cxx::LoggerPtr logger = log4cxx::Logger::getLogger("default"));
     
     /// Perform the walk
     /// @param node Holder to a Root object
@@ -61,6 +64,7 @@ public:
     
 protected:
     TypeResolver& typeResolver;
+    log4cxx::LoggerPtr logger;
 };
 
 }}

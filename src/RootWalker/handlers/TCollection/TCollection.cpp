@@ -20,6 +20,12 @@ public:
     }
     
     
+    std::string getHandlerId()
+    {
+        return "TCollectionHandler";
+    }
+    
+    
     bool recognize(const std::string& typeName)
     {
         TClass* klass = TClass::GetClass(typeName.c_str());

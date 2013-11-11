@@ -94,6 +94,10 @@ int main(int argc, char** argv)
     }
     
     TFile file(argv[1]);
+    if (file.IsZombie()) {
+        std::cerr << "Could not load!" << std::endl;
+        return -1;
+    }
     TypeResolver typeResolver(getHandlerLibraryPath());
     Walker walker(typeResolver);
     

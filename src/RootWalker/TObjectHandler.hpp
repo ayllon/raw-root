@@ -16,6 +16,8 @@ public:
     
     TObjectHandler(TypeResolver& resolver);
     
+    std::string getHandlerId();
+    
     bool recognize(const std::string& typeName);    
     
     void inspect(const Node& node, IVisitor& visitor);

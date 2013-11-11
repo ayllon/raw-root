@@ -15,7 +15,10 @@ int GenerateFile(const TString& library, const TString& file)
     TMyClass obj("A description");
 	obj.SetName("Hello");
 	obj.fFloats[2] = 5;
-    obj.Write();
+    //obj.Write();
+    
+    obj.fTree.SetName("tree");
+    obj.fTree.Write();
     
     // A vector
     TVector firstLevelVector;
@@ -23,7 +26,7 @@ int GenerateFile(const TString& library, const TString& file)
     for (size_t i = 0; i < firstLevelVector.GetNoElements(); ++i)
         firstLevelVector[i] = 42;
     firstLevelVector.Write();
-
+/*
     // A list (inherits from TCollection)
     TList list;
     for (size_t i = 0; i < 10; ++i) {
@@ -33,6 +36,6 @@ int GenerateFile(const TString& library, const TString& file)
         list.Add(line);
     }
     list.Write("AList", TObject::kSingleKey);
-
+*/
     return 0;
 }
