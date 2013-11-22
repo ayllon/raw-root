@@ -3,7 +3,7 @@
 
 #include "Walker.hpp"
 
-namespace scidb {
+namespace raw {
 namespace root {
 
 /// Interface for type handlers

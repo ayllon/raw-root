@@ -5,18 +5,20 @@
 #include <array/MemArray.h>
 #include <array/TupleArray.h>
 
+#include <Node.hpp>
+
 namespace scidb {
 
 class RootConstArrayIterator: public ConstArrayIterator
 {
 private:
-    boost::shared_ptr<std::vector<root::Node> > attributes;
+    boost::shared_ptr<std::vector<raw::root::Node> > attributes;
     scidb::AttributeID attId;
     Coordinates coordinates;
     MemChunk chunk;
     
 public:
-    RootConstArrayIterator(boost::shared_ptr<std::vector<root::Node> > attributes,
+    RootConstArrayIterator(boost::shared_ptr<std::vector<raw::root::Node> > attributes,
         scidb::AttributeID attId):
         attributes(attributes), attId(attId)
     {
@@ -66,12 +68,12 @@ class RootLoaderArray: public Array
 private:
     ArrayDesc schema;
     boost::shared_ptr<Query> query;
-    boost::shared_ptr<std::vector<root::Node> > attributes;
+    boost::shared_ptr<std::vector<raw::root::Node> > attributes;
     
     friend class RootConstArrayIterator;
     
 public:
-    RootLoaderArray(ArrayDesc schema, boost::shared_ptr<Query> query, boost::shared_ptr<std::vector<root::Node> > attributes):
+    RootLoaderArray(ArrayDesc schema, boost::shared_ptr<Query> query, boost::shared_ptr<std::vector<raw::root::Node> > attributes):
         schema(schema), query(query), attributes(attributes)
     {
     }

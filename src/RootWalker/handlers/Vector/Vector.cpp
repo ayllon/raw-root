@@ -4,7 +4,7 @@
 #include "../../TypeHandler.hpp"
 #include "../../TypeResolver.hpp"
 
-using namespace scidb::root;
+using namespace raw::root;
 
 
 /// Put into container the container type, and into contained, the contained type

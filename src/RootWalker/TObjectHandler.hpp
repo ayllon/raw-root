@@ -4,7 +4,7 @@
 #include <TMemberInspector.h>
 #include "TypeHandler.hpp"
 
-namespace scidb {
+namespace raw {
 namespace root {
   
 /// Built-in generic TObject handler. This is intended to be a fallback for types non

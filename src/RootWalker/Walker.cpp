@@ -2,7 +2,7 @@
 #include "TypeResolver.hpp"
 #include "Walker.hpp"
 
-using namespace scidb::root;
+using namespace raw::root;
 
 
 

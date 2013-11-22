@@ -3,7 +3,7 @@
 #include <TString.h>
 #include "Data.hpp"
 
-using namespace scidb::root;
+using namespace raw::root;
 
 
 struct TypeNamePair {
@@ -141,7 +141,7 @@ std::string Data::getString() const
 }
 
 
-std::ostream& scidb::root::operator << (std::ostream& o, const Data& d)
+std::ostream& raw::root::operator << (std::ostream& o, const Data& d)
 {
     switch (d.getType()) {
         case kInt8:

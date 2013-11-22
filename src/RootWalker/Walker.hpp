@@ -6,7 +6,7 @@
 #include "Data.hpp"
 #include "Node.hpp"
 
-namespace scidb {
+namespace raw {
 namespace root {
     
 class TypeResolver;

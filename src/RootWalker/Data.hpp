@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <string>
 
-namespace scidb {
+namespace raw {
 namespace root {
 
 /// Enumerate for different _basic_ data types

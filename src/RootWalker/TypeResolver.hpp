@@ -4,7 +4,7 @@
 #include <log4cxx/logger.h>
 #include "TypeHandler.hpp"
 
-namespace scidb {
+namespace raw {
 namespace root {
 
 // Private implementation

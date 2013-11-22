@@ -7,7 +7,7 @@
 #  define BUILD_PATH ""
 #endif
 
-using namespace scidb::root;
+using namespace raw::root;
 
 
 class MyVisitor: public IVisitor

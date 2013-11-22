@@ -2,7 +2,7 @@
 #include "../../TypeHandler.hpp"
 #include "../../TypeResolver.hpp"
 
-using namespace scidb::root;
+using namespace raw::root;
 
 class TCollectionHandler: public ITypeHandler
 {

@@ -9,7 +9,7 @@
 #include "Utils.hpp"
 
 using namespace scidb;
-using namespace scidb::root;
+using namespace raw::root;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.common.thread"));
 

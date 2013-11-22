@@ -5,8 +5,8 @@
 #include <TObject.h>
 #include "Data.hpp"
 
-class A;
-namespace scidb {
+
+namespace raw {
 namespace root {
     
 /// Holds a pointer to an object and associated metadata

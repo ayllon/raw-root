@@ -5,7 +5,7 @@
 #include "TypeResolver.hpp"
 
 
-using namespace scidb::root;
+using namespace raw::root;
 
 /// Return true if fName is a module (i.e. ends with .so)
 static bool isModule(const std::string& fName)
@@ -16,7 +16,7 @@ static bool isModule(const std::string& fName)
 }
 
 /// Private implementation, not exposed
-class  scidb::root::TypeResolverImpl
+class raw::root::TypeResolverImpl
 {
 protected:
     typedef std::vector<ITypeHandler*> ITypeHandlerList;
