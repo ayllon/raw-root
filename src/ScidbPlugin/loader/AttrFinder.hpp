@@ -6,13 +6,14 @@
 class AttrFinder: public scidb::root::IVisitor
 {
 private:
-    std::vector<scidb::root::Node> attributes;
+    boost::shared_ptr<std::vector<scidb::root::Node> > attributes;
     log4cxx::LoggerPtr logger;
     size_t depth;
     
 public:
     
-    AttrFinder(): depth(0), logger(log4cxx::Logger::getLogger("scidb.common.thread"))
+    AttrFinder(): attributes(new std::vector<scidb::root::Node>),
+        depth(0), logger(log4cxx::Logger::getLogger("scidb.common.thread"))
     {
     }
     
@@ -42,7 +43,7 @@ public:
                 case scidb::root::kUInt64:
                 case scidb::root::kUInt8:
                     LOG4CXX_DEBUG(logger, "Array of a known type found: " << node.getName());
-                    attributes.push_back(node);
+                    attributes->push_back(node);
                     break;
                 default:
                     // Pass
@@ -77,7 +78,7 @@ public:
         // Pass
     }
     
-    std::vector<scidb::root::Node>& getAttributes()
+    boost::shared_ptr<std::vector<scidb::root::Node> > getAttributes()
     {
         return attributes;
     }

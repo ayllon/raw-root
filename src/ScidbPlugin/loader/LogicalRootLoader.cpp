@@ -5,21 +5,10 @@
 #include <Walker.hpp>
 
 #include "AttrFinder.hpp"
+#include "Utils.hpp"
 
 using namespace scidb;
 using namespace scidb::root;
-
-
-#ifndef BUILD_PATH
-#  define BUILD_PATH "/usr/lib64/scidbroot/"
-#endif
-static std::string getHandlerLibraryPath(void)
-{
-    const char* envPath = getenv("HANDLER_LIBRARY_PATH");
-    if (envPath)
-        return envPath;
-    return std::string(BUILD_PATH);
-}
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.common.thread"));
 
@@ -36,6 +25,7 @@ public:
         ADD_PARAM_CONSTANT("string");
     }
     
+    
     void getParameters(boost::shared_ptr<Query> query, string& filePath, string& objPath)
     {
         if (_parameters.size() < 2) {
@@ -51,6 +41,7 @@ public:
         objPath = evaluate(((shared_ptr<OperatorParamLogicalExpression>&) oParam)->
                         getExpression(), query, TID_STRING).getString();
     }
+    
     
     ArrayDesc inferSchema(std::vector<ArrayDesc> schemas, boost::shared_ptr<Query> query)
     {
@@ -84,8 +75,8 @@ public:
         AttrFinder arrayFinder;
         walker.walk(rootNode, arrayFinder);
         
-        std::vector<Node> arrayAttrs = arrayFinder.getAttributes();
-        size_t nAttrs = arrayAttrs.size();
+        boost::shared_ptr<std::vector<Node> > arrayAttrs = arrayFinder.getAttributes();
+        size_t nAttrs = arrayAttrs->size();
         
         if (nAttrs == 0)
             throw SYSTEM_EXCEPTION(SCIDB_SE_OPERATOR, SCIDB_LE_OP_NORMALIZE_ERROR3);
@@ -94,7 +85,7 @@ public:
         Attributes attrs(nAttrs);
         
         for (size_t i = 0; i < nAttrs; ++i) {
-            const Node& node = arrayAttrs[i];
+            const Node& node = (*arrayAttrs)[i];
             LOG4CXX_DEBUG(logger, "\t" << node.getName());
             attrs[i] = AttributeDesc(0, node.getName(), TID_DOUBLE, 0, 0);
         }
