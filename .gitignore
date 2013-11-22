@@ -1,5 +1,8 @@
-build
+.classpath
+.cproject
 .kdev4
-scidb-root.kdev4
 .kdev_include_paths
+.project
+build
+scidb-root.kdev4
 
