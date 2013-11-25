@@ -14,6 +14,7 @@ public class Walker {
 	protected native void finalize();
 
 	protected long ptr;
+	protected long typeResolverPtr;
 	
 	static {
 		System.loadLibrary("JRootWalkerNative");

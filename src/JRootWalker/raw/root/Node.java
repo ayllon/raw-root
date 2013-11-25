@@ -34,4 +34,5 @@ public class Node {
 	protected native void finalize();
 
 	protected long ptr;
+	protected long tFilePtr;
 };

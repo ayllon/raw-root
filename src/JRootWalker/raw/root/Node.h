@@ -90,4 +90,5 @@ JNIEXPORT void JNICALL Java_raw_root_Node_finalize
 #ifdef __cplusplus
 }
 #endif
+
 #endif

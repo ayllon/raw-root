@@ -24,6 +24,11 @@ public class Data {
 	public native double getDouble();
 
 	public native String getString();
+	
+	@Override
+	public String toString() {
+		return "TODO";
+	}
 
 	protected native void initialize();
 
