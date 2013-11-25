@@ -14,13 +14,13 @@ namespace root {
 class TObjectHandler: public TMemberInspector, public ITypeHandler {
 public:
     
-    TObjectHandler(TypeResolver& resolver);
+    TObjectHandler(TypeResolver* resolver);
     
     std::string getHandlerId();
     
     bool recognize(const std::string& typeName);    
     
-    void inspect(const Node& node, IVisitor& visitor);
+    void inspect(const std::shared_ptr<Node> node, IVisitor* visitor);
     
     /// Overloaded method
     /// @param klass  The class of the object being inspected
@@ -30,7 +30,7 @@ public:
     void Inspect(TClass* klass, const char* parent, const char* name, const void* addr);
 
 protected:
-    TypeResolver& resolver;
+    TypeResolver* resolver;
     IVisitor* visitor;
 };
 

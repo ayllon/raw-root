@@ -1,35 +1,58 @@
 #ifndef __TOOLS_H
 #define __TOOLS_H
 
-inline jfieldID GetPtrField(JNIEnv *env, jobject obj, const char *fieldName)
-{
-    jclass c = env->GetObjectClass(obj);
-    return env->GetFieldID(c, fieldName, "J");
-}
+#include <memory>
 
 template <typename T>
-T *GetNativePtr(JNIEnv *env, jobject obj, const char *fieldName)
+class NativePtr
 {
-    return reinterpret_cast<T*>(env->GetLongField(obj, GetPtrField(env, obj, fieldName)));
-}
+private:
+    JNIEnv *env;
+    jobject obj;
+    const char *fieldName;
+    jclass klass;
+    jfieldID fieldId;
+    std::shared_ptr<T> *pointerToShared;
 
-template <typename T>
-T *GetNativePtr(JNIEnv *env, jobject obj)
-{
-    return GetNativePtr<T>(env, obj, "ptr");
-}
+public:
+    NativePtr(JNIEnv *env, jobject obj, const char *fieldName = "ptr"):
+        env(env), obj(obj), fieldName(fieldName)
+    {
+        klass = env->GetObjectClass(obj);
+        fieldId = env->GetFieldID(klass, fieldName, "J");
+        pointerToShared = reinterpret_cast<std::shared_ptr<T>*>(env->GetLongField(obj, fieldId));
+    }
 
-template <typename T>
-void SetNativePtr(JNIEnv *env, jobject obj, const char *fieldName, T* ptr)
-{
-    env->SetLongField(obj, GetPtrField(env, obj, fieldName), reinterpret_cast<long>(ptr));
-}
+    ~NativePtr()
+    {
+        // Pass
+    }
 
-template <typename T>
-void SetNativePtr(JNIEnv *env, jobject obj, T* ptr)
-{
-    SetNativePtr<T>(env, obj, "ptr", ptr);
-}
+    std::shared_ptr<T>& getPtr()
+    {
+        return *pointerToShared;
+    }
+
+    std::shared_ptr<T>& operator -> ()
+    {
+        return *pointerToShared;
+    }
+
+    void initialize(std::shared_ptr<T> shPtr)
+    {
+        pointerToShared = new std::shared_ptr<T>(shPtr);
+        env->SetLongField(obj, fieldId, reinterpret_cast<long>(pointerToShared));
+    }
+
+    void finalize()
+    {
+        pointerToShared->reset();
+        delete pointerToShared;
+        pointerToShared = nullptr;
+        env->SetLongField(obj, fieldId, 0);
+    }
+};
+
 
 template <typename T>
 class ScopedJObject
@@ -39,11 +62,13 @@ private:
     jobject obj;
 
 public:
-    ScopedJObject(JNIEnv *env, const std::string& type, T* ptr): env(env) {
-        jclass klass = env->FindClass(type.c_str());
+    ScopedJObject(JNIEnv *env, const char *type, const std::shared_ptr<T> ptr): env(env) {
+        jclass klass = env->FindClass(type);
         jmethodID constructor = env->GetMethodID(klass, "<init>", "()V");
         obj = env->NewObject(klass, constructor);
-        SetNativePtr<T>(env, obj, ptr);
+
+        NativePtr<T> nPtr(env, obj);
+        nPtr.initialize(ptr);
     }
 
     ~ScopedJObject() {

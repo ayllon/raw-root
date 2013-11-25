@@ -6,34 +6,32 @@ using namespace raw::root;
 
 
 
-Walker::Walker(TypeResolver& typeResolver, log4cxx::LoggerPtr logger):
-    typeResolver(typeResolver), logger(logger)
+Walker::Walker(std::shared_ptr<TypeResolver> typeResolver):
+    typeResolver(typeResolver)
 {
 }
 
 
-void Walker::walk(const Node& node, IVisitor& visitor)
+void Walker::walk(const std::shared_ptr<Node> node, IVisitor* visitor)
 {   
-    ITypeHandler* handler = typeResolver.getHandlerForType(node.getTypeName());
+    ITypeHandler* handler = typeResolver->getHandlerForType(node->getTypeName());
     if (handler)
         handler->inspect(node, visitor);
     else
-        visitor.unknown(node);
+        visitor->unknown(node);
 }
 
 
 class PickerVisitor: public IVisitor
 {
 private:
-    Node node;
+    std::shared_ptr<Node> node;
     
     std::vector<std::string> pathComponents;
     size_t depth, maxDepth;
-    log4cxx::LoggerPtr logger;
     
 public:
-    PickerVisitor(const std::string& path, log4cxx::LoggerPtr logger):
-        depth(0), logger(logger)
+    PickerVisitor(const std::string& path): depth(0)
     {
         std::istringstream helper(path);
         std::string c;
@@ -44,80 +42,64 @@ public:
         maxDepth = pathComponents.size() - 1;
     }
     
-    Node getNode(void)
+    std::shared_ptr<Node> getNode(void)
     {
         return node;
     }
     
-    bool pre(const Node& visitedNode)
+    bool pre(const std::shared_ptr<Node> visitedNode)
     {
-        LOG4CXX_DEBUG(logger, "Searching under " << visitedNode.getName());
-        
         bool recurse = false;
         if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
-            if (depth == maxDepth && lookingFor == visitedNode.getName()) {
-                LOG4CXX_DEBUG(logger, "Found node " << lookingFor);
+            if (depth == maxDepth && lookingFor == visitedNode->getName()) {
                 node = visitedNode;
                 recurse = false;
             }
             else {
-                recurse = (visitedNode.getName() == lookingFor || lookingFor == "/") && !visitedNode.isPointer();
+                recurse = (visitedNode->getName() == lookingFor || lookingFor == "/") &&
+                          !visitedNode->isPointer();
             }
         }
         ++depth;
         return recurse;
     }
     
-    void post(const Node& visitedNode)
+    void post(const std::shared_ptr<Node> visitedNode)
     {
         --depth;
     }
     
-    void unknown(const Node& visitedNode)
+    void unknown(const std::shared_ptr<Node> visitedNode)
     {
         if (!node && depth <= maxDepth) {
             std::string lookingFor = pathComponents[depth];
             
-            if (depth == maxDepth && lookingFor == visitedNode.getName())
+            if (depth == maxDepth && lookingFor == visitedNode->getName())
                 node = visitedNode;
         }
     }
     
-    void leaf(const std::string& name, const Data& data)
+    void leaf(const std::string& name, const std::shared_ptr<Data> data)
     {
-        if (!node && depth <= maxDepth) {
-            std::string lookingFor = pathComponents[depth];
-            
-            if (depth == maxDepth && lookingFor == name)
-                node = Node(name, data);
-        }
+        // Leaf not supported
     }
     
-    void leaf(size_t index, const Data& data)
+    void leaf(size_t index, const std::shared_ptr<Data> data)
     {
-        if (!node && depth <= maxDepth) {
-            std::string lookingFor = pathComponents[depth];
-            
-            std::ostringstream indexStr;
-            indexStr << index;
-            if (depth == maxDepth && lookingFor == indexStr.str())
-                node = Node(indexStr.str(), data);
-        }
+        // Leaf not supported
     }
 };
 
 
-Node Walker::getChildNode(const Node& node, const std::string& path)
+std::shared_ptr<Node> Walker::getChildNode(const std::shared_ptr<Node> node, const std::string& path)
 {
-    ITypeHandler* handler = typeResolver.getHandlerForType(node.getTypeName());
+    ITypeHandler* handler = typeResolver->getHandlerForType(node->getTypeName());
     if (!handler)
-        return Node();
-    
-    LOG4CXX_DEBUG(logger, "Using " << handler->getHandlerId() << " for the root node, which is a " << node.getTypeName());
-    
-    PickerVisitor picker(path, logger);
-    handler->inspect(node, picker);
+        return std::shared_ptr<Node>();
+
+    PickerVisitor picker(path);
+    handler->inspect(node, &picker);
     return picker.getNode();
 }

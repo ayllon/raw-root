@@ -35,17 +35,18 @@ public:
     }
     
     
-    void inspect(const Node& node, IVisitor& visitor)
+    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
     {
-        if (visitor.pre(ArrayNode(node)) && !node.isPointer()) {
-            const TDirectory* dir = static_cast<const TDirectory*>(node.getAddress());
+        node->setArray();
+        if (visitor->pre(node) && !node->isPointer()) {
+            const TDirectory* dir = static_cast<const TDirectory*>(node->getAddress());
             this->iterate(dir, visitor);
         }
-        visitor.post(ArrayNode(node));
+        visitor->post(node);
     }
     
     
-    void iterate(const TDirectory* dir, IVisitor& visitor)
+    void iterate(const TDirectory* dir, IVisitor* visitor)
     {
         if (!dir)
             return;
@@ -56,11 +57,11 @@ public:
             TKey*    key = static_cast<TKey*>(keys->At(i));
             TObject* obj = key->ReadObj();
             ITypeHandler* handler = resolver->getHandlerForType(key->GetClassName());
-            Node node(key->GetClassName(), obj->GetName(), obj);
+            std::shared_ptr<Node> node(new Node(key->GetClassName(), obj->GetName(), obj));
             if (handler)
                 handler->inspect(node, visitor);
             else
-                visitor.unknown(node);
+                visitor->unknown(node);
         }
     }
 };

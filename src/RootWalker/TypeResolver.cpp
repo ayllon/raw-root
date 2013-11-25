@@ -110,7 +110,7 @@ TypeResolver::TypeResolver(const std::string& handlerLocation, log4cxx::LoggerPt
 {
     implPtr->loadHandlersFromLocation(handlerLocation);
     // Force generic object handler last
-    implPtr->registerHandler(new TObjectHandler(*this));
+    implPtr->registerHandler(new TObjectHandler(this));
 }
 
 

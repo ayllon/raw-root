@@ -10,6 +10,8 @@
 #  define BUILD_PATH ""
 #endif
 
+using namespace raw::root;
+
 
 static std::string getHandlerLibraryPath(void)
 {
@@ -44,30 +46,30 @@ public:
     {
     }
 
-    bool pre(const raw::root::Node& node)
+    bool pre(const std::shared_ptr<Node> node)
     {
-        ScopedJObject<const raw::root::Node> jNode(jEnv, "raw/root/Node", &node);
+        ScopedJObject<const Node> jNode(jEnv, "raw/root/Node", node);
         int rvalue = jEnv->CallBooleanMethod(jVisitor, jPre, jNode.getObject());
         return rvalue != 0;
     }
 
-    void post(const raw::root::Node& node)
+    void post(const std::shared_ptr<Node> node)
     {
-        ScopedJObject<const raw::root::Node> jNode(jEnv, "raw/root/Node", &node);
+        ScopedJObject<const Node> jNode(jEnv, "raw/root/Node", node);
         jEnv->CallVoidMethod(jVisitor, jPost, jNode.getObject());
     }
 
-    void unknown(const raw::root::Node& node)
+    void unknown(const std::shared_ptr<Node> node)
     {
 
     }
 
-    void leaf(const std::string& name, const raw::root::Data& data)
+    void leaf(const std::string& name, const std::shared_ptr<Data> data)
     {
 
     }
 
-    void leaf(size_t index, const raw::root::Data& data)
+    void leaf(size_t index, const std::shared_ptr<Data> data)
     {
 
     }
@@ -77,63 +79,54 @@ public:
 
 void JNICALL Java_raw_root_Walker_walk(JNIEnv *env, jobject self, jobject node, jobject visitor)
 {
-    raw::root::Node *cnode = GetNativePtr<raw::root::Node>(env, node);
-    raw::root::Walker *walker = GetNativePtr<raw::root::Walker>(env, self);
-
-    if (!cnode) {
-        env->ThrowNew(env->FindClass("java/lang/Exception"), "Node is NULL");
-        return;
-    }
+    NativePtr<Node> cnode(env, node);
+    NativePtr<Walker> walker(env, self);
 
     BridgeVisitor bVisitor(env, visitor);
-    walker->walk(*cnode, bVisitor);
+    walker->walk(cnode.getPtr(), &bVisitor);
 }
 
 
 
 jobject JNICALL Java_raw_root_Walker_getChildNode(JNIEnv *env, jobject self, jobject node, jstring path)
 {
-    raw::root::Node *cnode = GetNativePtr<raw::root::Node>(env, node);
-    raw::root::Walker *walker = GetNativePtr<raw::root::Walker>(env, self);
+    NativePtr<Node> nNode(env, node);
+    NativePtr<Walker> nWalker(env, self);
 
     const char *cpath = env->GetStringUTFChars(path, 0);
-    raw::root::Node *newcNode = new raw::root::Node(walker->getChildNode(*cnode, cpath));
+    std::shared_ptr<Node> childNode = nWalker->getChildNode(nNode.getPtr(), cpath);
     env->ReleaseStringUTFChars(path, cpath);
 
-    if (!newcNode)
+    if (!childNode)
         return NULL;
-
-    if (newcNode == cnode)
-        return node;
 
     jclass nodeCls = env->FindClass("raw/root/Node");
     jmethodID nodeConstructor = env->GetMethodID(nodeCls, "<init>", "()V");
-    jobject rnode = env->NewObject(nodeCls, nodeConstructor);
+    jobject jChildNode = env->NewObject(nodeCls, nodeConstructor);
+    NativePtr<Node> nChildNode(env, jChildNode);
 
-    SetNativePtr<raw::root::Node>(env, rnode, newcNode);
-    return rnode;
+    nChildNode.initialize(childNode);
+
+    return jChildNode;
 }
 
 
 
 void JNICALL Java_raw_root_Walker_initialize(JNIEnv *env, jobject self)
 {
-    raw::root::TypeResolver *resolver = new raw::root::TypeResolver(getHandlerLibraryPath());
-    raw::root::Walker *walker = new raw::root::Walker(*resolver);
+    NativePtr<TypeResolver> nResolver(env, self, "typeResolverPtr");
+    nResolver.initialize(std::shared_ptr<TypeResolver>(new TypeResolver(getHandlerLibraryPath())));
 
-    SetNativePtr<raw::root::TypeResolver>(env, self, "typeResolverPtr", resolver);
-    SetNativePtr<raw::root::Walker>(env, self, walker);
+    NativePtr<Walker> nWalker(env, self);
+    nWalker.initialize(std::shared_ptr<Walker>(new Walker(nResolver.getPtr())));
 }
 
 
 void JNICALL Java_raw_root_Walker_finalize(JNIEnv *env, jobject self)
 {
-    raw::root::Walker *walker = GetNativePtr<raw::root::Walker>(env, self);
-    raw::root::TypeResolver *resolver = GetNativePtr<raw::root::TypeResolver>(env, self, "typeResolverPtr");
+    NativePtr<TypeResolver> nResolver(env, self, "typeResolverPtr");
+    NativePtr<Walker> nWalker(env, self);
 
-    //delete walker;
-    //delete resolver;
-
-    SetNativePtr<raw::root::TypeResolver>(env, self, "typeResolverPtr", nullptr);
-    SetNativePtr<raw::root::Walker>(env, self, nullptr);
+    nWalker.finalize();
+    nResolver.finalize();
 }

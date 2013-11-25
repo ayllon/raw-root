@@ -1,6 +1,7 @@
 #ifndef __NODE_HPP
 #define __NODE_HPP
 
+#include <memory>
 #include <string>
 #include <TObject.h>
 #include "Data.hpp"
@@ -18,21 +19,21 @@ public:
     {
     }
     
-    Node(const std::string& t, const std::string& n, const void* p):
-         type(t), name(n), pointer(false), address(p), array(false)
+    Node(const std::string& type, const std::string& name, const void* p):
+         type(type), name(name), pointer(false), address(p), array(false)
     {
     }
     
-    Node(const std::string& t, bool rp, const std::string& n, const void* p):
-         type(t), name(n), pointer(rp), address(p), array(false)
+    Node(const std::string& type, bool rp, const std::string& name, const void* p):
+         type(type), name(name), pointer(rp), address(p), array(false)
     {
     }
-    
-    Node(const std::string& n, const Data& d):
-        type(d.getTypeName()), name(n), address(d.getRawPointer()), array(false)
+
+    Node(const std::string& container, const std::string& contained, const std::string& name, const void* p):
+        type(container), contained(contained), name(name), pointer(false), address(p), array(true)
     {
     }
-    
+
     Node(const TObject& obj):
         type(obj.ClassName()), name(obj.GetName()), address(&obj), array(false)
     {
@@ -62,25 +63,20 @@ public:
     {
         return Data::typeFromStr(type) != kUnknown;
     }
-    
-    Data getData() const
-    {
-        return Data(type, address);
-    }
-    
+
     bool isArray() const
     {
         return array;
     }
     
+    void setArray()
+    {
+        array = true;
+    }
+
     std::string getContainedType() const
     {
         return contained;
-    }
-    
-    operator bool () const
-    {
-        return address != nullptr;
     }
     
 protected:
@@ -92,27 +88,15 @@ protected:
     
     bool array;
     std::string contained;
+
+    std::shared_ptr<Data> dPtrHolder;
+
+private:
+    // Forbid copies
+    Node(const Node&);
+    const Node& operator = (const Node&);
 };
 
-
-class ArrayNode: public Node
-{
-public:
-    ArrayNode(const Node& node, const std::string& ct = std::string("*")):
-        Node(node)
-    {
-        array = true;
-        contained = ct;
-    }
-    
-    ArrayNode(const std::string& t, const std::string& ct, const std::string& n, const void* p):
-        Node(t, n, p)
-    {
-        array = true;
-        contained = ct;
-    }
-};
-    
 }}
 
 #endif // __OBJREF_HPP

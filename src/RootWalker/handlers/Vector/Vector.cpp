@@ -35,12 +35,12 @@ static void getContainerType(const std::string& fullType,
 /// Generic template for an interator from the standard library
 template <template <typename ...> class CONTAINER, typename T>
 struct ArrayIterator {
-    static void iterate(const void* addr, const std::string& elementType, IVisitor& visitor)
+    static void iterate(const void* addr, const std::string& elementType, IVisitor* visitor)
     {
         const CONTAINER<T> *v = static_cast<const CONTAINER<T>*>(addr);
         size_t nElements = v->size();
         for (size_t i = 0; i < nElements; ++i)
-            visitor.leaf(i, Data(elementType, &((*v)[i])));
+            visitor->leaf(i, std::shared_ptr<Data>(new Data(elementType, &((*v)[i]))));
     }   
 };
 
@@ -49,12 +49,12 @@ struct ArrayIterator {
 template <typename T>
 struct ArrayIterator<TVectorT, T>
 {
-    static void iterate(const void* addr, const std::string& elementType, IVisitor& visitor)
+    static void iterate(const void* addr, const std::string& elementType, IVisitor* visitor)
     {
         const TVectorT<T> *v = static_cast<const TVectorT<T>*>(addr);
         size_t nElements = v->GetNoElements();
         for (size_t i = 0; i < nElements; ++i)
-            visitor.leaf(i, Data(elementType, &((*v)[i])));
+            visitor->leaf(i, std::shared_ptr<Data>(new Data(elementType, &((*v)[i]))));
     }   
 };
 
@@ -82,31 +82,31 @@ public:
     }
     
     
-    void inspect(const Node& node, IVisitor& visitor)
+    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
     {
         std::string containerTypeName;
         std::string containedTypeName;
-        getContainerType(node.getTypeName(), &containerTypeName, &containedTypeName);
+        getContainerType(node->getTypeName(), &containerTypeName, &containedTypeName);
         
-        ArrayNode arrayNode(node, containedTypeName);
+        std::shared_ptr<Node> arrayNode(new Node(containerTypeName, containedTypeName, node->getName(), node->getAddress()));
         
-        if (visitor.pre(arrayNode) && !node.isPointer()) {
+        if (visitor->pre(arrayNode) && !node->isPointer()) {
             DataType containedType = Data::typeFromStr(containedTypeName);
             
             // TVector is a typedef ot TVector<Float_t>
             if (containerTypeName == "TVector") {
-                IterateGenericArray<TVectorT>(node.getAddress(), "Float_t", visitor);
+                IterateGenericArray<TVectorT>(node->getAddress(), "Float_t", visitor);
             }
             // TVectorT types
             else if (containerTypeName == "TVectorT") {
-                IterateGenericArray<TVectorT>(node.getAddress(), containedTypeName, visitor);
+                IterateGenericArray<TVectorT>(node->getAddress(), containedTypeName, visitor);
             }
             // std::vector types
             else if (containerTypeName == "vector") {
-                IterateGenericArray<std::vector>(node.getAddress(), containedTypeName, visitor);
+                IterateGenericArray<std::vector>(node->getAddress(), containedTypeName, visitor);
             }
         }
-        visitor.post(arrayNode);
+        visitor->post(arrayNode);
     }
     
     
@@ -116,7 +116,7 @@ public:
     /// root container and standard containers.
     template <template <typename ...> class CONTAINER>
     void IterateGenericArray(const void* addr, const std::string& elementType,
-                             IVisitor& visitor)
+                             IVisitor* visitor)
     {
         DataType containedType = Data::typeFromStr(elementType);
         switch (containedType) {

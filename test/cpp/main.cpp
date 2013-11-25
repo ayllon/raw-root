@@ -22,12 +22,12 @@ public:
     }
     
     // Before children
-    bool pre(const Node& node)
+    bool pre(const std::shared_ptr<Node> node)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '+' << node.getTypeName() << ' ' << node.getName().substr(0, 30);
+        std::cout << indent << '+' << node->getTypeName() << ' ' << node->getName().substr(0, 30);
         ++tabLevel;
-        if (node.isArray())
+        if (node->isArray())
             std::cout << " [";
         else
             std::cout << " {";
@@ -36,41 +36,41 @@ public:
     }
     
     // After children
-    void post(const Node& node)
+    void post(const std::shared_ptr<Node> node)
     {
         --tabLevel;
         std::string indent(tabLevel, '\t');
-        if (node.isArray())
+        if (node->isArray())
             std::cout << std::endl << indent << " ]" << std::endl;
         else
             std::cout << indent << " }" << std::endl;
     }
     
     // On a leaf
-    void leaf(const std::string& name, const Data& data)
+    void leaf(const std::string& name, const std::shared_ptr<Data> data)
     {
         std::string indent(tabLevel, '\t');
         std::cout << indent << ' '
-                  << data.getTypeName() << ' '
+                  << data->getTypeName() << ' '
                   << name.substr(0, 30) << " = " << data
                   << std::endl;
     }
     
     // Array elements
-    void leaf(size_t index, const Data& data)
+    void leaf(size_t index, const std::shared_ptr<Data> data)
     {
         if (index == 0) {
             std::string indent(tabLevel, '\t');
             std::cout << indent;
         }
-        std::cout << data << ',';
+        std::cout << *data << ',';
     }
     
     // Unknown elements
-    void unknown(const Node& node)
+    void unknown(const std::shared_ptr<Node> node)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '?' << node.getTypeName() << ' ' << node.getName() << std::endl;
+        std::cout << indent << '?' << node->getTypeName() << ' ' << node->getName() << std::endl;
     }
 };
 
@@ -98,16 +98,16 @@ int main(int argc, char** argv)
         std::cerr << "Could not load!" << std::endl;
         return -1;
     }
-    TypeResolver typeResolver(getHandlerLibraryPath());
+    std::shared_ptr<TypeResolver> typeResolver(new TypeResolver(getHandlerLibraryPath()));
     Walker walker(typeResolver);
     
-    Node rootNode(file);
+    std::shared_ptr<Node> rootNode(new Node(file));
     if (argc > 2)
         rootNode = walker.getChildNode(rootNode, argv[2]);
 
     if (rootNode) {
         MyVisitor visitor;
-        walker.walk(rootNode, visitor);
+        walker.walk(rootNode, &visitor);
     }
     
     return 0;

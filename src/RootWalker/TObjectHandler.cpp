@@ -6,7 +6,7 @@
 using namespace raw::root;
 
 
-TObjectHandler::TObjectHandler(TypeResolver& resolver):
+TObjectHandler::TObjectHandler(TypeResolver* resolver):
     resolver(resolver), visitor(nullptr)
 {
 }
@@ -25,13 +25,13 @@ bool TObjectHandler::recognize(const std::string& typeName)
 }
 
 
-void TObjectHandler::inspect(const Node& node, IVisitor& visitor)
+void TObjectHandler::inspect(const std::shared_ptr<Node> node, IVisitor* visitor)
 {
-    if (visitor.pre(node)) {
-        this->visitor = &visitor;
-        ((TObject*)node.getAddress())->ShowMembers(*this);
+    if (visitor->pre(node)) {
+        this->visitor = visitor;
+        ((TObject*)node->getAddress())->ShowMembers(*this);
     }
-    visitor.post(node);
+    visitor->post(node);
 }
 
 
@@ -46,18 +46,20 @@ void TObjectHandler::Inspect(TClass* klass, const char* parent, const char* name
     
     // Basic types can not be traversed, so they are leafs
     if (member->IsBasic()) {
-        this->visitor->leaf(name, Data(memberType, addr));
+        std::shared_ptr<Data> d(new Data(memberType, addr));
+        this->visitor->leaf(name, d);
     }
     // Consider TString a basic type
     else if (memberType == "TString") {
-        this->visitor->leaf(name, Data(memberType, addr));
+        std::shared_ptr<Data> d(new Data(memberType, addr));
+        this->visitor->leaf(name, d);
     }
     // Complex types
     else {
-        Node thisNode(memberType, member->IsaPointer(), name, addr);
-        ITypeHandler* handler = resolver.getHandlerForType(memberType);
+        std::shared_ptr<Node> thisNode(new Node(memberType, member->IsaPointer(), name, addr));
+        ITypeHandler* handler = resolver->getHandlerForType(memberType);
         if (handler && !member->IsaPointer())
-            handler->inspect(thisNode, *this->visitor);
+            handler->inspect(thisNode, this->visitor);
         else
             this->visitor->unknown(thisNode);
     }

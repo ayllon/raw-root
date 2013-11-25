@@ -33,14 +33,6 @@ JNIEXPORT jboolean JNICALL Java_raw_root_Node_isBasic
 
 /*
  * Class:     raw_root_Node
- * Method:    getData
- * Signature: ()Lraw/root/Data;
- */
-JNIEXPORT jobject JNICALL Java_raw_root_Node_getData
-  (JNIEnv *, jobject);
-
-/*
- * Class:     raw_root_Node
  * Method:    isArray
  * Signature: ()Z
  */
@@ -53,14 +45,6 @@ JNIEXPORT jboolean JNICALL Java_raw_root_Node_isArray
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_raw_root_Node_getContainedType
-  (JNIEnv *, jobject);
-
-/*
- * Class:     raw_root_Node
- * Method:    isNull
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_raw_root_Node_isNull
   (JNIEnv *, jobject);
 
 /*

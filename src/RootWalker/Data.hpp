@@ -54,6 +54,11 @@ protected:
     std::string typeName;
     const void* dataPtr;
     DataType    type;
+
+private:
+    // Forbid copies
+    Data(const Data&);
+    const Data& operator = (const Data&);
 };
 
 /// Convenience method to dump a Data object into a stream

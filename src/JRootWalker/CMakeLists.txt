@@ -19,5 +19,7 @@ file (
 include_directories (/usr/lib/jvm/java-7-openjdk-amd64/include/)
 include_directories (${CMAKE_SOURCE_DIR}/src)
 
+add_definitions (-std=c++11)
+
 add_library (JRootWalkerNative SHARED ${src_walker_c})
 target_link_libraries (JRootWalkerNative RootWalker)

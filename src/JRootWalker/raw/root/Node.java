@@ -15,16 +15,16 @@ public class Node {
 
 	public native boolean isBasic();
 
-	public native Data getData();
-
 	public native boolean isArray();
 
 	public native String getContainedType();
 
-	public native boolean isNull();
+	public boolean isNull() {
+		return ptr == 0;
+	}
 	
 	public boolean isValid() {
-		return !isNull();
+		return ptr != 0;
 	}
 
 	protected native void initialize();

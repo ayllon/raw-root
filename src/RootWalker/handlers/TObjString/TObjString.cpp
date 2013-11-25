@@ -23,12 +23,12 @@ public:
     }
 
 
-    void inspect(const Node& node, IVisitor& visitor)
+    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
     {
-        if (!node.isPointer() && node.getAddress()) {
-            const TObjString* objStr = static_cast<const TObjString*>(node.getAddress());
+        if (!node->isPointer() && node->getAddress()) {
+            const TObjString* objStr = static_cast<const TObjString*>(node->getAddress());
             TString str = objStr->GetString();
-            visitor.leaf(node.getName(), Data("TString", &str));
+            visitor->leaf(node->getName(), std::shared_ptr<Data>(new Data("TString", &str)));
         }
     }
 };
