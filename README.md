@@ -1,4 +1,4 @@
-scidb-root
+raw-root
 ==========
 
-SciDB plugin for Root Files
+RAW backend for ROOT files
