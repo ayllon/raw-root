@@ -23,7 +23,7 @@ public:
     
     /// Delegate processing of the type
     virtual void inspect(std::shared_ptr<Node> node,
-                         IVisitor* visitor) = 0;
+                         std::shared_ptr<IVisitor> visitor) = 0;
                          
 private:
     // Forbid copy

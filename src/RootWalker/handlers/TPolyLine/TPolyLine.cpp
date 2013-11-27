@@ -21,32 +21,22 @@ public:
     }
     
     
-    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
+    void inspect(std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor)
     {
-        if (visitor->pre(node) && !node->isPointer()) {
-            const TPolyLine* poly = static_cast<const TPolyLine*>(node->getAddress());
-            Int_t nPoints = poly->GetN();
-            // Number of elements
-            visitor->leaf("N", std::shared_ptr<Data>(new Data("Int_t", &nPoints)));
-            // First X
-            std::shared_ptr<Node> xArray(new Node("TPolyLine<Double_t>", "Double_t", "x", poly->GetX()));
-            if (visitor->pre(xArray))
-                this->iterate(nPoints, poly->GetX(), visitor);
-            visitor->post(xArray);
-            // Then Y
-            std::shared_ptr<Node> yArray(new Node("TPolyLine<Double_t>", "Double_t", "y", poly->GetY()));
-            if (visitor->pre(yArray))
-                this->iterate(nPoints, poly->GetY(), visitor);
-            visitor->post(yArray);
+        node->setType(Node::kDictionary);
+        if (visitor->pre(node)) {
+            this->visit("x", visitor);
+            this->visit("y", visitor);
         }
         visitor->post(node);
     }
-    
-    
-    void iterate(Int_t nPoints, Double_t* array, IVisitor* visitor)
+
+
+    void visit(const char* name, std::shared_ptr<IVisitor> visitor)
     {
-        for (Int_t i = 0; i < nPoints; ++i)
-            visitor->leaf(i, std::shared_ptr<Data>(new Data("Double_t", array + i)));
+        std::shared_ptr<Node> arrayContentNode(new Node(Node::kDouble));
+        visitor->pre(arrayContentNode);
+        visitor->post(arrayContentNode);
     }
 };
 

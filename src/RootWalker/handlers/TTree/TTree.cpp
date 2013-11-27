@@ -9,6 +9,26 @@
 using namespace raw::root;
 
 
+static void getContainerType(const std::string& fullType,
+                             std::string* container,
+                             std::string* contained)
+{
+    size_t templateIndex = fullType.find('<');
+    size_t fullTypeLen   = fullType.length();
+
+    if (templateIndex == std::string::npos) {
+        container->assign(fullType);
+        contained->clear();
+    }
+
+    // The -2 is because of the "< >"
+    size_t containedTypeLen = fullTypeLen - templateIndex - 2;
+
+    container->assign(fullType.substr(0, templateIndex));
+    contained->assign(fullType.substr(templateIndex + 1, containedTypeLen));
+}
+
+
 class TTreeHandler: public ITypeHandler
 {
 public:
@@ -24,123 +44,54 @@ public:
         TClass* klass = TClass::GetClass(typeName.c_str());
         return klass && klass->InheritsFrom("TTree");
     }
-    
-    
-    bool isBranch(const std::string& typeName)
+
+    bool isLeaf(const std::string& typeName)
     {
-        TClass* klass = TClass::GetClass(typeName.c_str());
-        return klass && klass->InheritsFrom("TBranch");
+        return typeName.compare(0, 6, "TLeaf<") == 0;
     }
-    
-    
-    bool isDoubleBranch(const std::string& typeName)
-    {
-        return typeName == "TBranch<Double_t>";
-    }
-    
     
     bool recognize(const std::string& typeName)
     {
-        return isTree(typeName) || isBranch(typeName) || isDoubleBranch(typeName);
+        return isTree(typeName) || isLeaf(typeName);
     }
     
-    
-    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
+    void inspect(std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor)
     {
         if (isTree(node->getTypeName())) {
-            if (visitor->pre(node) && !node->isPointer()) {
+            node->setType(Node::kDictionary);
+            if (visitor->pre(node)) {
                 TTree* tree = (TTree*)(node->getAddress());
-                TObjArray* branches = tree->GetListOfBranches();
-                this->iterateBranchArray(branches, visitor);
+                this->inspectTree(tree, visitor);
             }
             visitor->post(node);
         }
-        else if (isBranch(node->getTypeName())) {
-            TBranch* branch = (TBranch*)(node->getAddress());
-            this->iterateBranch(node->getName(), branch, visitor);
-        }
-        else if (isDoubleBranch(node->getTypeName())) {
-            TBranch* branch = (TBranch*)(node->getAddress());
-            this->iterateEntries(node->getName(), branch, visitor);
-        }
-    }
-    
-    
-    void iterateBranch(const std::string& name, TBranch* branch, IVisitor* visitor)
-    {
-        TObjArray* subBranches = branch->GetListOfBranches();
-        
-        if (subBranches->GetEntries() == 0) {
-            this->iterateEntries(branch->GetName(), branch, visitor);
-        }
-        else {
-            std::shared_ptr<Node> branchNode(new Node("TBranch", name, branch));
-            if (visitor->pre(branchNode))
-                this->iterateBranchArray(subBranches, visitor);
-            visitor->post(branchNode);
-        }
-    }
-    
-    
-    void iterateBranchArray(TObjArray* branches, IVisitor* visitor)
-    {
-        if (!branches)
-            return;
-
-        TIterator* iterator = branches->MakeIterator();
-        TObject* obj;
-        while ((obj = iterator->Next())) {
-            TBranch* branch = static_cast<TBranch*>(obj);
-            this->iterateBranch(branch->GetName(), branch, visitor);
-        }
-    }
-    
-    
-    void iterateEntries(const std::string& name, TBranch* branch, IVisitor* visitor)
-    {
-        if (!branch)
-            return;
-        
-        std::shared_ptr<Node> branchNode(new Node("TBranch", std::string("Double_t"), name, branch));
-        if (visitor->pre(branchNode)) {
-            Long64_t count = branch->GetEntries();
-            for (Long64_t i = 0; i < count; ++i) {
-                branch->GetEntry(i, 1);
-                TObjArray* leaves = branch->GetListOfLeaves();
-                this->iterateLeaves(leaves, i, visitor);
+        else if (isLeaf(node->getTypeName())) {
+            node->setType(Node::kCollection);
+            if (visitor->pre(node)) {
+                std::string container, contained;
+                getContainerType(node->getTypeName(), &container, &contained);
+                std::shared_ptr<Node> containedNode(new Node(contained));
+                visitor->pre(containedNode);
+                visitor->post(containedNode);
             }
+            visitor->post(node);
         }
-        visitor->post(branchNode);
     }
     
-    
-    void iterateLeaves(TObjArray* leaves, Long64_t i, IVisitor* visitor)
+    void inspectTree(TTree* tree, std::shared_ptr<IVisitor> visitor)
     {
-        if (!leaves)
-            return;
-        
-        TIterator* iterator = leaves->MakeIterator();
-        TObject* obj;
-        while ((obj = iterator->Next())) {
-            TLeaf* leaf = static_cast<TLeaf*>(obj);
-            std::string leafType = leaf->GetTypeName();
-            
-            Double_t value;
-            Int_t len = leaf->GetLen();
-            if (len > 1) {
-                std::shared_ptr<Node> leafNode(new Node(leafType, "Double_t", leaf->GetName(), leaf));
-                if (visitor->pre(leafNode)) {
-                    for (Int_t j = 0; j < len; ++j) {
-                        value = leaf->GetValue(j);
-                        visitor->leaf(j, std::shared_ptr<Data>(new Data("Double_t", &value)));
-                    }
-                }
-                visitor->post(leafNode);
+        TObjArray* leaves = tree->GetListOfLeaves();
+        TIterator* it = leaves->MakeIterator();
+        TObject *obj;
+        while ((obj = it->Next()) != NULL) {
+            TLeaf* leaf = (TLeaf*)obj;
+            std::shared_ptr<Node> leafNode(new Node(std::string("TLeaf<") + leaf->GetTypeName() + ">", Node::kCollection, leaf->GetName()));
+            if (visitor->pre(leafNode)) {
+                std::shared_ptr<Node> containedNode(new Node(leaf->GetTypeName()));
+                visitor->pre(containedNode);
+                visitor->post(containedNode);
             }
-            else {
-                value = leaf->GetValue();
-                visitor->leaf(i, std::shared_ptr<Data>(new Data("Double_t", &value)));
-            }
+            visitor->post(leafNode);
         }
     }
 };

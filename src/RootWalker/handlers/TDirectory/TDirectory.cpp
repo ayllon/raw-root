@@ -35,10 +35,10 @@ public:
     }
     
     
-    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
+    void inspect(std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor)
     {
-        node->setArray();
-        if (visitor->pre(node) && !node->isPointer()) {
+        node->setType(Node::kDictionary);
+        if (visitor->pre(node)) {
             const TDirectory* dir = static_cast<const TDirectory*>(node->getAddress());
             this->iterate(dir, visitor);
         }
@@ -46,7 +46,7 @@ public:
     }
     
     
-    void iterate(const TDirectory* dir, IVisitor* visitor)
+    void iterate(const TDirectory* dir, std::shared_ptr<IVisitor> visitor)
     {
         if (!dir)
             return;

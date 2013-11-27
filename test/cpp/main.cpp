@@ -25,11 +25,9 @@ public:
     bool pre(const std::shared_ptr<Node> node)
     {
         std::string indent(tabLevel, '\t');
-        std::cout << indent << '+' << node->getTypeName() << ' ' << node->getName().substr(0, 30);
+        std::cout << indent << node->getName().substr(0, 30) << ": " << node->getType();
         ++tabLevel;
-        if (node->isArray())
-            std::cout << " [";
-        else
+        if (node->getType() == Node::kDictionary)
             std::cout << " {";
         std::cout << std::endl;        
         return true;
@@ -40,30 +38,8 @@ public:
     {
         --tabLevel;
         std::string indent(tabLevel, '\t');
-        if (node->isArray())
-            std::cout << std::endl << indent << " ]" << std::endl;
-        else
+        if (node->getType() == Node::kDictionary)
             std::cout << indent << " }" << std::endl;
-    }
-    
-    // On a leaf
-    void leaf(const std::string& name, const std::shared_ptr<Data> data)
-    {
-        std::string indent(tabLevel, '\t');
-        std::cout << indent << ' '
-                  << data->getTypeName() << ' '
-                  << name.substr(0, 30) << " = " << data
-                  << std::endl;
-    }
-    
-    // Array elements
-    void leaf(size_t index, const std::shared_ptr<Data> data)
-    {
-        if (index == 0) {
-            std::string indent(tabLevel, '\t');
-            std::cout << indent;
-        }
-        std::cout << *data << ',';
     }
     
     // Unknown elements
@@ -106,8 +82,11 @@ int main(int argc, char** argv)
         rootNode = walker.getChildNode(rootNode, argv[2]);
 
     if (rootNode) {
-        MyVisitor visitor;
-        walker.walk(rootNode, &visitor);
+        std::shared_ptr<MyVisitor> visitor(new MyVisitor());
+        walker.walk(rootNode, visitor);
+    }
+    else {
+        std::cerr << "Could not find the given node" << std::endl;
     }
     
     return 0;

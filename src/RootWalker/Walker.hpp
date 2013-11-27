@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <TFile.h>
-#include "Data.hpp"
 #include "Node.hpp"
 
 namespace raw {
@@ -29,16 +28,6 @@ public:
     /// Called when an element of unknown type is found.
     /// @param node The node being visited.
     virtual void unknown(const std::shared_ptr<Node> node) = 0;
-    
-    /// Called for a basic type with a name. For instance, object attributes.
-    /// @param name The attribute name
-    /// @param data The attribute raw data
-    virtual void leaf(const std::string& name, const std::shared_ptr<Data> data) = 0;
-    
-    /// Called for a basic type within an array.
-    /// @param index The attribute index within the array
-    /// @param data  The attribute raw data
-    virtual void leaf(size_t index, const std::shared_ptr<Data> data) = 0;
 };
 
 /// Public interface
@@ -52,7 +41,7 @@ public:
     /// Perform the walk
     /// @param node Holder to a Root object
     /// @param visitor The implementation of IVisitor
-    void walk(const std::shared_ptr<Node> node, IVisitor* visitor);
+    void walk(const std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor);
     
     /// Convenience method to get a child node
     /// i.e.

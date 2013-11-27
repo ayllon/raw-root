@@ -1,7 +1,6 @@
 #ifndef __TYPERESOLVER_HPP
 #define __TYPERESOLVER_HPP
 
-#include <log4cxx/logger.h>
 #include "TypeHandler.hpp"
 
 namespace raw {
@@ -13,8 +12,7 @@ class TypeResolverImpl;
 class TypeResolver
 {
 public:
-    TypeResolver(const std::string& handlerLocation,
-                 log4cxx::LoggerPtr logger = log4cxx::Logger::getLogger("default"));
+    TypeResolver(const std::string& handlerLocation);
     ~TypeResolver();
     
     /// Register a new handler.

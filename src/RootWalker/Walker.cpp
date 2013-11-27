@@ -12,7 +12,7 @@ Walker::Walker(std::shared_ptr<TypeResolver> typeResolver):
 }
 
 
-void Walker::walk(const std::shared_ptr<Node> node, IVisitor* visitor)
+void Walker::walk(const std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor)
 {   
     ITypeHandler* handler = typeResolver->getHandlerForType(node->getTypeName());
     if (handler)
@@ -58,8 +58,7 @@ public:
                 recurse = false;
             }
             else {
-                recurse = (visitedNode->getName() == lookingFor || lookingFor == "/") &&
-                          !visitedNode->isPointer();
+                recurse = (visitedNode->getName() == lookingFor || lookingFor == "/");
             }
         }
         ++depth;
@@ -80,16 +79,6 @@ public:
                 node = visitedNode;
         }
     }
-    
-    void leaf(const std::string& name, const std::shared_ptr<Data> data)
-    {
-        // Leaf not supported
-    }
-    
-    void leaf(size_t index, const std::shared_ptr<Data> data)
-    {
-        // Leaf not supported
-    }
 };
 
 
@@ -99,7 +88,7 @@ std::shared_ptr<Node> Walker::getChildNode(const std::shared_ptr<Node> node, con
     if (!handler)
         return std::shared_ptr<Node>();
 
-    PickerVisitor picker(path);
-    handler->inspect(node, &picker);
-    return picker.getNode();
+    std::shared_ptr<PickerVisitor> picker(new PickerVisitor(path));
+    handler->inspect(node, picker);
+    return picker->getNode();
 }

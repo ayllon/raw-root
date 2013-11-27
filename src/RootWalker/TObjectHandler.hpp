@@ -20,7 +20,7 @@ public:
     
     bool recognize(const std::string& typeName);    
     
-    void inspect(const std::shared_ptr<Node> node, IVisitor* visitor);
+    void inspect(const std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor);
     
     /// Overloaded method
     /// @param klass  The class of the object being inspected
@@ -31,7 +31,7 @@ public:
 
 protected:
     TypeResolver* resolver;
-    IVisitor* visitor;
+    std::shared_ptr<IVisitor> visitor;
 };
 
 }}

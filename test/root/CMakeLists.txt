@@ -15,7 +15,7 @@ add_custom_command (
 set (CMAKE_EXE_LINKER_FLAGS "-Wl,--no-as-needed")
 
 add_library (
-    TMyClass SHARED
+    TMyClass MODULE
     TMyClass.cpp TMyClass-dictionary.cpp
     TData.cpp TData-dictionary.cpp
 )

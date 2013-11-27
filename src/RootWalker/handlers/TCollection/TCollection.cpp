@@ -33,10 +33,10 @@ public:
     }
     
     
-    void inspect(std::shared_ptr<Node> node, IVisitor* visitor)
+    void inspect(std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor)
     {
-        node->setArray();
-        if (visitor->pre(node) && !node->isPointer()) {
+        node->setType(Node::kCollection);
+        if (visitor->pre(node)) {
             const TCollection* collection = static_cast<const TCollection*>(node->getAddress());
             this->iterate(collection, visitor);
         }
@@ -44,7 +44,7 @@ public:
     }
     
     
-    void iterate(const TCollection* collection, IVisitor* visitor)
+    void iterate(const TCollection* collection, std::shared_ptr<IVisitor> visitor)
     {
         if (!collection)
             return;

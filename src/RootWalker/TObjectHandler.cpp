@@ -25,11 +25,14 @@ bool TObjectHandler::recognize(const std::string& typeName)
 }
 
 
-void TObjectHandler::inspect(const std::shared_ptr<Node> node, IVisitor* visitor)
+void TObjectHandler::inspect(const std::shared_ptr<Node> node, std::shared_ptr<IVisitor> visitor)
 {
+    node->setType(Node::kDictionary);
     if (visitor->pre(node)) {
         this->visitor = visitor;
-        ((TObject*)node->getAddress())->ShowMembers(*this);
+        TObject* obj = ((TObject*)node->getAddress());
+        if (obj)
+            obj->ShowMembers(*this);
     }
     visitor->post(node);
 }
@@ -45,22 +48,23 @@ void TObjectHandler::Inspect(TClass* klass, const char* parent, const char* name
     std::string  memberType = member->GetTypeName();
     
     // Basic types can not be traversed, so they are leafs
-    if (member->IsBasic()) {
-        std::shared_ptr<Data> d(new Data(memberType, addr));
-        this->visitor->leaf(name, d);
-    }
     // Consider TString a basic type
-    else if (memberType == "TString") {
-        std::shared_ptr<Data> d(new Data(memberType, addr));
-        this->visitor->leaf(name, d);
+    if (member->IsBasic() || memberType == "TString") {
+        std::shared_ptr<Node> node(new Node(memberType, name));
+        this->visitor->pre(node);
+        this->visitor->post(node);
     }
     // Complex types
     else {
-        std::shared_ptr<Node> thisNode(new Node(memberType, member->IsaPointer(), name, addr));
-        ITypeHandler* handler = resolver->getHandlerForType(memberType);
-        if (handler && !member->IsaPointer())
-            handler->inspect(thisNode, this->visitor);
-        else
+        std::shared_ptr<Node> thisNode(new Node(memberType, name, addr));
+        if (!member->IsaPointer()) {
+            ITypeHandler* handler = resolver->getHandlerForType(memberType);
+            if (handler && !member->IsaPointer())
+                handler->inspect(thisNode, this->visitor);
+            else
+                this->visitor->unknown(thisNode);
+        } else {
             this->visitor->unknown(thisNode);
+        }
     }
 }
