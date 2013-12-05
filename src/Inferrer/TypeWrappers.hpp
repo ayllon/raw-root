@@ -23,16 +23,25 @@ public:
 
 
 class UnknownType: public BaseType {
+protected:
+	std::string typeName;
+
 public:
-    UnknownType(JNIEnv *jvEnv): BaseType(jvEnv)
+	UnknownType(JNIEnv *jvEnv): BaseType(jvEnv), typeName("uninitialized")
+	{
+	}
+
+    UnknownType(JNIEnv *jvEnv, std::shared_ptr<raw::root::Node> node):
+    	BaseType(jvEnv)
     {
+    	typeName = node->getTypeName();
     }
 
     virtual ~UnknownType() {}
 
     std::string toString()
     {
-        return "UnknownType()";
+        return std::string("UnknownType(") + typeName + ")";
     }
 
     void append(const std::string& name, std::shared_ptr<BaseType> child)
@@ -41,9 +50,10 @@ public:
 
     jobject getJObject(void)
     {
+    	jobject   type        = jvEnv->NewStringUTF(typeName.c_str());
         jclass    klass       = jvEnv->FindClass("raw/root/types/UnknownType");
-        jmethodID constructor = jvEnv->GetMethodID(klass, "<init>", "()V");
-        return jvEnv->NewObject(klass, constructor);
+        jmethodID constructor = jvEnv->GetMethodID(klass, "<init>", "(Ljava/lang/String;)V");
+        return jvEnv->NewObject(klass, constructor, type);
     }
 };
 
