@@ -37,11 +37,11 @@ struct TypeNamePair {
 const static TypeNamePair typeMaps[] = {
     TypeNamePair(Node::kInt8,   "char", "Char_t", "Bool_t", NULL),
     TypeNamePair(Node::kInt32,  "int", "Int_t", NULL),
-    TypeNamePair(Node::kUInt32, "UInt_t", NULL),
+    TypeNamePair(Node::kUInt32, "unsigned int", "UInt_t", NULL),
     TypeNamePair(Node::kInt64,  "Long64_t", NULL),
     TypeNamePair(Node::kFloat,  "float", "Float_t", NULL),
     TypeNamePair(Node::kDouble, "double", "Double_t", NULL),
-    TypeNamePair(Node::kString, "TString", NULL)
+    TypeNamePair(Node::kString, "TString", "string", NULL)
 };
 const static size_t nPairs = sizeof(typeMaps) / sizeof(TypeNamePair);
 
