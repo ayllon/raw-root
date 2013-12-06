@@ -113,6 +113,12 @@ void Node::setType(Type t)
 }
 
 
+bool Node::isBasic() const
+{
+	return type > Node::kCollection && type <= Node::kString;
+}
+
+
 std::ostream& raw::root::operator << (std::ostream& os, Node::Type type)
 {
    switch (type) {

@@ -31,7 +31,14 @@ static void getContainerType(const std::string& fullType,
 
 class TTreeHandler: public ITypeHandler
 {
+protected:
+	TypeResolver* resolver;
+
 public:
+
+	TTreeHandler(TypeResolver* resolver): resolver(resolver)
+	{
+	}
     
     std::string getHandlerId()
     {
@@ -88,8 +95,20 @@ public:
             std::shared_ptr<Node> leafNode(new Node(std::string("TLeaf<") + leaf->GetTypeName() + ">", Node::kCollection, leaf->GetName()));
             if (visitor->pre(leafNode)) {
                 std::shared_ptr<Node> containedNode(new Node(leaf->GetTypeName()));
-                visitor->pre(containedNode);
-                visitor->post(containedNode);
+
+                if (containedNode->isBasic()) {
+                	visitor->pre(containedNode);
+					visitor->post(containedNode);
+                }
+                else {
+                	ITypeHandler* handler = resolver->getHandlerForType(leaf->GetTypeName());
+                	if (!handler) {
+                		visitor->unknown(containedNode);
+                	}
+                	else {
+                		handler->inspect(containedNode, visitor);
+                	}
+                }
             }
             visitor->post(leafNode);
         }
@@ -100,5 +119,5 @@ public:
 /// This method must register the type handlers
 extern "C" void registerTypes(TypeResolver* resolver)
 {
-    resolver->registerHandler(new TTreeHandler());
+    resolver->registerHandler(new TTreeHandler(resolver));
 }

@@ -49,6 +49,8 @@ public:
     const void* getAddress() const;
 
     void setType(Type type);
+
+    bool isBasic() const;
 };
 
 
