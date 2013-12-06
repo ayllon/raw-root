@@ -29,6 +29,8 @@ public:
         ++tabLevel;
         if (node->getType() == Node::kDictionary)
             std::cout << " {";
+        else if (node->getType() == Node::kUnknown)
+        	std::cout << " (" << node->getTypeName() << ")";
         std::cout << std::endl;        
         return true;
     }

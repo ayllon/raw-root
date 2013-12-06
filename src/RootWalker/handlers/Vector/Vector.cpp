@@ -34,7 +34,15 @@ static void getContainerType(const std::string& fullType,
 /// Implementation of IHandler for vector types
 class VectorHandler: public ITypeHandler
 {
+protected:
+	TypeResolver* resolver;
+
 public:
+	VectorHandler(TypeResolver* resolver): resolver(resolver)
+	{
+	}
+
+
     ~VectorHandler()
     {
     }
@@ -63,8 +71,17 @@ public:
         node->setType(Node::kCollection);
         if (visitor->pre(node)) {
             std::shared_ptr<Node> contained(new Node(containedTypeName));
-            visitor->pre(contained);
-            visitor->post(contained);
+            if (contained->isBasic()) {
+				visitor->pre(contained);
+				visitor->post(contained);
+            }
+            else {
+            	ITypeHandler* handler = resolver->getHandlerForType(containedTypeName);
+            	if (!handler)
+            		visitor->unknown(contained);
+            	else
+            		handler->inspect(contained, visitor);
+            }
         }
         visitor->post(node);
     }
@@ -73,5 +90,5 @@ public:
 /// This method must register the type handlers
 extern "C" void registerTypes(TypeResolver* resolver)
 {
-    resolver->registerHandler(new VectorHandler());
+    resolver->registerHandler(new VectorHandler(resolver));
 }
