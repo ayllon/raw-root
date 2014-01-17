@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import com.typesafe.sbteclipse.plugin.EclipsePlugin.EclipseKeys
 import org.seacourt.build._
 
 object RawRootPlugin extends NativeDefaultBuild("RawRootPlugin") {
@@ -11,7 +12,8 @@ object RawRootPlugin extends NativeDefaultBuild("RawRootPlugin") {
         "RootWalker", file("RootWalker/"),
         NativeProject.sharedLibrarySettings ++ Seq(
             compileFlags,
-            nativeIncludeDirectories in Compile += file("/usr/include/root")
+            nativeIncludeDirectories in Compile += file("/usr/include/root"),
+            EclipseKeys.skipProject := true
         )
     )
   
@@ -21,7 +23,8 @@ object RawRootPlugin extends NativeDefaultBuild("RawRootPlugin") {
             compileFlags,
             nativeIncludeDirectories in Compile += file("/usr/include/root"),
             nativeIncludeDirectories in Compile += file("./RootWalker/source"),
-            nativeIncludeDirectories in Compile += file("/usr/lib/jvm/java-7-openjdk-amd64/include")
+            nativeIncludeDirectories in Compile += file("/usr/lib/jvm/java-7-openjdk-amd64/include"),
+            EclipseKeys.skipProject := true
         )
     ) nativeDependsOn rootWalker
     
