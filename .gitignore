@@ -1,8 +1,11 @@
+.cache
 .classpath
 .cproject
 .kdev4
 .kdev_include_paths
 .project
-build
-scidb-root.kdev4
+.settings
+.worksheet
+build/
+target/
 
