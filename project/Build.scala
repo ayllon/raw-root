@@ -24,7 +24,7 @@ object RawRootPlugin extends NativeDefaultBuild("RawRootPlugin") {
     )
     
     def makeNativeProject(f: File): Project =
-        NativeProject(f.getName, f, walkerSettings) nativeDependsOn rootWalker
+        NativeProject("Handler_" + f.getName, f, walkerSettings) nativeDependsOn rootWalker
     
     lazy val availableHandlers: Array[Project] = 
         new File("./RootWalker/handlers").listFiles().filter(_.isDirectory).map(makeNativeProject(_))

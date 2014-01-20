@@ -6,6 +6,6 @@
 .project
 .settings
 .worksheet
-build/
+stage/
 target/
 
