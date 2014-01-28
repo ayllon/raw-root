@@ -22,6 +22,6 @@ public class Inferrer {
 	private native Type infer(String path, String node, String handlerPath);
 	
 	static {
-        System.loadLibrary("RootInferrerNative");
+        System.loadLibrary("RawRootPluginNative");
 	}   
 }

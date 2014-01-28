@@ -6,6 +6,7 @@
 .project
 .settings
 .worksheet
+bin/
 stage/
 target/
 

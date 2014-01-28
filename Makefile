@@ -10,10 +10,11 @@ stage: all
 	mkdir -p stage/walker stage/walker/handlers
 	install target/native/RawRootPlugin/RootWalker/$(SBT_CPP_COFIG_PATH)/RootWalker.so stage/walker
 	install target/native/RawRootPlugin/Handler_*/$(SBT_CPP_COFIG_PATH)/*.so stage/walker/handlers
-	install target/native/RawRootPlugin/RawRootPluginNative/$(SBT_CPP_COFIG_PATH)/RawRootPluginNative.so stage
+	install target/native/RawRootPlugin/libRawRootPluginNative/$(SBT_CPP_COFIG_PATH)/libRawRootPluginNative.so stage
 	install RawRootPlugin/target/scala-*/rawrootpluginjvm*.jar stage
 
 clean:
+	$(SBT) "nativeBuildConfiguration $(SBT_CPP_CONFIG)" clean
 	rm -rf stage
 	rm -rf target
 	rm -rf project/target
